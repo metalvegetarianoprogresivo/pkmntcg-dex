@@ -107,6 +107,13 @@
     select:focus, .btn:hover { border-color: var(--accent); outline: none; }
     .btn.accent { background: var(--accent); color: #000; border-color: var(--accent); }
     .btn.accent:hover { background: #ffd000; }
+    .toggle-pocket {
+      display: flex; align-items: center; gap: 5px; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.5px;
+      user-select: none; white-space: nowrap;
+    }
+    .toggle-pocket input { accent-color: var(--accent); cursor: pointer; }
+    .toggle-pocket:has(input:checked) span { color: var(--accent); }
     .filter-tabs { display: flex; gap: 4px; margin-left: auto; }
     .filter-tab {
       background: var(--surface2); border: 1px solid var(--border);
@@ -556,6 +563,7 @@
   <div class="toolbar">
     <div class="toolbar-inner">
       <select id="filter-series"><option value="">Todas las series</option></select>
+      <label class="toggle-pocket"><input type="checkbox" id="chk-hide-pocket"><span>Ocultar Pocket</span></label>
       <div class="filter-tabs">
         <button class="filter-tab active" data-filter="all">TODAS</button>
         <button class="filter-tab" data-filter="have">TENGO</button>
@@ -769,6 +777,7 @@ let cardIndex  = {};    // { cardId: cardObj } built once in initTCG()
 let currentFilter = 'all';
 let currentSearch = '';
 let currentSeries = '';
+let hidePocket = false;
 let openSets = new Set();
 let modalCardId = null;
 
@@ -919,6 +928,7 @@ document.getElementById('btn-add-all-collection').addEventListener('click', () =
   const visibleIds = [];
   DB.cards.forEach(card => {
     const set = DB.sets[card.setId]; if (!set) return;
+    if (hidePocket && set.series === 'Pokémon TCG Pocket') return;
     if (currentSeries && set.series !== currentSeries) return;
     if (search && !card.name.toLowerCase().includes(search) && !set.name.toLowerCase().includes(search)) return;
     const have = hasCard(card.id);
@@ -976,6 +986,7 @@ function render() {
   const setMap = {};
   DB.cards.forEach(card => {
     const set = DB.sets[card.setId]; if (!set) return;
+    if (hidePocket && set.series === 'Pokémon TCG Pocket') return;
     if (currentSeries && set.series !== currentSeries) return;
     if (search) { if (!card.name.toLowerCase().includes(search) && !set.name.toLowerCase().includes(search)) return; }
     const have = hasCard(card.id);
@@ -1027,8 +1038,15 @@ function renderCard(card) {
 }
 
 function updateTCGStats() {
-  const owned = Object.values(collection).filter(Boolean).length;
-  const total = DB ? DB.totalCards : 0;
+  let owned, total;
+  if (hidePocket && DB) {
+    const pocketSets = new Set(Object.entries(DB.sets).filter(([,s]) => s.series === 'Pokémon TCG Pocket').map(([id]) => id));
+    owned = Object.keys(collection).filter(id => collection[id] && cardIndex[id] && !pocketSets.has(cardIndex[id].setId)).length;
+    total = DB.cards.filter(c => !pocketSets.has(c.setId)).length;
+  } else {
+    owned = Object.values(collection).filter(Boolean).length;
+    total = DB ? DB.totalCards : 0;
+  }
   const pct = total ? owned/total*100 : 0;
   document.getElementById('stat-have').textContent = owned.toLocaleString();
   document.getElementById('stat-missing').textContent = Math.max(0,total-owned).toLocaleString();
@@ -1309,6 +1327,13 @@ document.querySelectorAll('#view-tcg .filter-tab[data-filter]').forEach(tab => {
   });
 });
 document.getElementById('filter-series').addEventListener('change', e => { currentSeries = e.target.value; render(); });
+document.getElementById('chk-hide-pocket').addEventListener('change', e => {
+  hidePocket = e.target.checked;
+  const sel = document.getElementById('filter-series');
+  [...sel.options].forEach(o => { if (o.value === 'Pokémon TCG Pocket') o.hidden = hidePocket; });
+  if (hidePocket && currentSeries === 'Pokémon TCG Pocket') { currentSeries = ''; sel.value = ''; }
+  render();
+});
 
 // Dex filters
 document.querySelectorAll('[data-dex-filter]').forEach(tab => {
