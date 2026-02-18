@@ -1661,15 +1661,16 @@ function openDexModal(pokemonId) {
 
   updateDexModalBtns();
 
-  // Find all TCG cards for this Pokémon
+  // Find all TCG cards for this Pokémon (exact match or name + suffix like " V", " VMAX", " ex")
   let tcgCards = [];
   if (DB) {
     const nameLower = p.name.toLowerCase();
-    tcgCards = DB.cards.filter(c => c.name.toLowerCase() === nameLower);
-    // Also try partial (e.g. "Charizard ex", "Pikachu V")
-    if (tcgCards.length === 0) {
-      tcgCards = DB.cards.filter(c => c.name.toLowerCase().startsWith(nameLower));
-    }
+    tcgCards = DB.cards.filter(c => {
+      const cardName = c.name.toLowerCase();
+      return cardName === nameLower ||
+        cardName.startsWith(nameLower + ' ') ||
+        cardName.startsWith(nameLower + '-');
+    });
   }
 
   document.getElementById('dex-modal-card-count').textContent = tcgCards.length;
