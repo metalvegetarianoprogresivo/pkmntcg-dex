@@ -1100,7 +1100,9 @@ function renderWishlist() {
 
 function toggleSet(setId) {
   openSets.has(setId) ? openSets.delete(setId) : openSets.add(setId);
-  document.querySelector(`[data-set-id="${setId}"]`)?.classList.toggle('open');
+  const viewId = currentView === 'collections' ? 'coll-detail-container' :
+                 currentView === 'wishlist' ? 'wish-sets-container' : 'sets-container';
+  document.querySelector(`#${viewId} [data-set-id="${setId}"]`)?.classList.toggle('open');
 }
 
 // ════════════════════════════════════════════════
