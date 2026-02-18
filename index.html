@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0f14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Rastreador de colección Pokémon TCG" />
+  <title>PokéDex TCG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d0d12;
+      --surface: #16161f;
+      --surface2: #1e1e2a;
+      --border: #2a2a3a;
+      --accent: #e8b800;
+      --accent2: #ff4f4f;
+      --text: #e8e8f0;
+      --text-dim: #7a7a99;
+      --have: #2ecc71;
+      --missing: #e74c3c;
+      --radius: 10px;
+      --card-w: 140px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overscroll-behavior: none;
+    }
+
+    /* ─── HEADER ─────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,13,18,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      padding-top: env(safe-area-inset-top);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 56px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--accent);
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+
+    .logo span { color: var(--text-dim); font-weight: 400; font-size: 13px; letter-spacing: 2px; display: block; line-height: 1; }
+
+    .search-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      padding: 8px 36px 8px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-wrap input:focus { border-color: var(--accent); }
+    .search-wrap input::placeholder { color: var(--text-dim); }
+
+    .search-clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      display: none;
+    }
+
+    /* ─── TOOLBAR ────────────────────────────── */
+    .toolbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      overflow-x: auto;
+    }
+
+    .toolbar-inner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    select, .btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      padding: 6px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    select:focus, .btn:hover { border-color: var(--accent); outline: none; }
+
+    .btn.accent { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn.accent:hover { background: #ffd000; }
+    .btn.danger { background: transparent; border-color: var(--accent2); color: var(--accent2); }
+
+    .filter-tabs {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .filter-tab {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+    /* ─── STATS BAR ──────────────────────────── */
+    .stats-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+    }
+
+    .stats-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .stat-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .stat-dot.have { background: var(--have); }
+    .stat-dot.missing { background: var(--missing); }
+    .stat-dot.total { background: var(--text-dim); }
+
+    .stat strong { font-weight: 700; }
+    .stat span { color: var(--text-dim); }
+
+    .progress-bar-wrap {
+      flex: 1;
+      min-width: 120px;
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--have), #27ae60);
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    .progress-pct {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    /* ─── SETS ACCORDION ─────────────────────── */
+    .sets-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px 16px 80px;
+    }
+
+    .set-group {
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .set-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--surface);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+
+    .set-header:hover { background: var(--surface2); }
+
+    .set-logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 4px rgba(232,184,0,0.3));
+    }
+
+    .set-info { flex: 1; min-width: 0; }
+
+    .set-name {
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .set-meta {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: 'Space Mono', monospace;
+    }
+
+    .set-progress {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      min-width: 80px;
+    }
+
+    .set-pct {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    .mini-bar {
+      width: 80px;
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .mini-bar-fill {
+      height: 100%;
+      background: var(--have);
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    .set-chevron {
+      color: var(--text-dim);
+      font-size: 12px;
+      transition: transform 0.2s;
+      margin-left: 4px;
+    }
+
+    .set-group.open .set-chevron { transform: rotate(180deg); }
+
+    .set-cards {
+      display: none;
+      padding: 12px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+
+    .set-group.open .set-cards { display: block; }
+
+    /* ─── CARDS GRID ─────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(var(--card-w), 1fr));
+      gap: 10px;
+    }
+
+    .card-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.15s, border-color 0.15s;
+      background: var(--surface);
+    }
+
+    .card-item:hover { transform: scale(1.03); }
+
+    .card-item.have { border-color: var(--have); }
+    .card-item.missing { border-color: var(--surface2); opacity: 0.55; }
+    .card-item.missing:hover { opacity: 0.9; }
+
+    .card-img-wrap {
+      position: relative;
+      aspect-ratio: 2/3;
+      background: var(--surface2);
+    }
+
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.3s;
+    }
+
+    .card-img-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+
+    .card-status-badge {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .card-status-badge.have { background: var(--have); color: #000; }
+    .card-status-badge.missing { background: rgba(0,0,0,0.6); color: var(--text-dim); border: 1px solid var(--border); }
+
+    .card-info {
+      padding: 6px 8px;
+    }
+
+    .card-name {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-number {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    /* ─── EMPTY STATE ────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-dim);
+    }
+
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 16px; }
+
+    /* ─── LOADING ────────────────────────────── */
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+      gap: 16px;
+    }
+
+    .pokeball {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 4px solid var(--accent);
+      position: relative;
+      animation: spin 1s linear infinite;
+    }
+
+    .pokeball::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg);
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-size: 14px;
+      color: var(--text-dim);
+      font-family: 'Space Mono', monospace;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ─── TOAST ──────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: calc(20px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 999;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ─── MODAL ──────────────────────────────── */
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    #modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .modal img {
+      max-width: 200px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .modal h3 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .modal p { color: var(--text-dim); font-size: 13px; margin-bottom: 16px; }
+
+    .modal-btns { display: flex; gap: 8px; }
+    .modal-btns button { flex: 1; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 700; font-family: 'Rajdhani', sans-serif; cursor: pointer; border: none; }
+
+    .btn-have { background: var(--have); color: #000; }
+    .btn-missing { background: var(--surface2); color: var(--text); border: 1px solid var(--border) !important; }
+    .btn-close { margin-top: 10px; width: 100%; padding: 8px; background: none; color: var(--text-dim); font-size: 13px; font-family: 'Rajdhani', sans-serif; cursor: pointer; border: none; }
+
+    /* ─── RESPONSIVE ─────────────────────────── */
+    @media (max-width: 480px) {
+      :root { --card-w: 110px; }
+      .logo span { display: none; }
+    }
+
+    @media (min-width: 768px) {
+      :root { --card-w: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      PokéDex TCG
+      <span>COLLECTION TRACKER</span>
+    </div>
+    <div class="search-wrap">
+      <input type="search" id="search-input" placeholder="Buscar carta o set..." autocomplete="off" />
+      <button class="search-clear" id="search-clear" title="Limpiar búsqueda">✕</button>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="toolbar-inner">
+    <select id="filter-series" title="Filtrar por serie">
+      <option value="">Todas las series</option>
+    </select>
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">TODAS</button>
+      <button class="filter-tab" data-filter="have">TENGO</button>
+      <button class="filter-tab" data-filter="missing">FALTAN</button>
+    </div>
+    <button class="btn accent" id="btn-export" title="Exportar colección">⬇ Export</button>
+    <button class="btn" id="btn-import" title="Importar colección">⬆ Import</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" />
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat">
+      <div class="stat-dot have"></div>
+      <strong id="stat-have">0</strong>
+      <span>tengo</span>
+    </div>
+    <div class="stat">
+      <div class="stat-dot missing"></div>
+      <strong id="stat-missing">0</strong>
+      <span>faltan</span>
+    </div>
+    <div class="stat">
+      <div class="stat-dot total"></div>
+      <strong id="stat-total">0</strong>
+      <span>total</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-pct" id="stat-pct">0.0%</div>
+  </div>
+</div>
+
+<main>
+  <div id="loading">
+    <div class="pokeball"></div>
+    <div class="loading-text">Cargando base de datos...</div>
+  </div>
+
+  <div class="sets-container" id="sets-container" style="display:none"></div>
+
+  <div class="empty-state" id="empty-state" style="display:none">
+    <div class="icon">🔍</div>
+    <p>No se encontraron cartas con esos filtros</p>
+  </div>
+</main>
+
+<!-- Modal detalle carta -->
+<div id="modal-overlay">
+  <div class="modal">
+    <img id="modal-img" src="" alt="" />
+    <h3 id="modal-name"></h3>
+    <p id="modal-meta"></p>
+    <div class="modal-btns">
+      <button class="btn-have" id="modal-btn-have">✓ La tengo</button>
+      <button class="btn-missing" id="modal-btn-missing">✕ Me falta</button>
+    </div>
+    <button class="btn-close" id="modal-close">Cerrar</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // ═══════════════════════════════════════════
+  //  STATE
+  // ═══════════════════════════════════════════
+  const STORAGE_KEY = 'pokédex-tcg-collection-v1';
+  let DB = null;           // full cards.json data
+  let collection = {};     // { [cardId]: true/false }
+  let currentFilter = 'all';
+  let currentSearch = '';
+  let currentSeries = '';
+  let openSets = new Set();
+  let modalCardId = null;
+
+  // ═══════════════════════════════════════════
+  //  LOCALSTORAGE
+  // ═══════════════════════════════════════════
+  function loadCollection() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      collection = raw ? JSON.parse(raw) : {};
+    } catch { collection = {}; }
+  }
+
+  function saveCollection() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(collection));
+  }
+
+  function hasCard(id) { return collection[id] === true; }
+
+  function toggleCard(id) {
+    collection[id] = !collection[id];
+    if (!collection[id]) delete collection[id];
+    saveCollection();
+  }
+
+  // ═══════════════════════════════════════════
+  //  EXPORT / IMPORT
+  // ═══════════════════════════════════════════
+  document.getElementById('btn-export').addEventListener('click', () => {
+    const data = {
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      collection,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pokemon-tcg-collection-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('✅ Colección exportada');
+  });
+
+  document.getElementById('btn-import').addEventListener('click', () => {
+    document.getElementById('import-file').click();
+  });
+
+  document.getElementById('import-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.collection) {
+          collection = data.collection;
+        } else {
+          // raw format fallback
+          collection = data;
+        }
+        saveCollection();
+        render();
+        toast('✅ Colección importada correctamente');
+      } catch {
+        toast('❌ Error al importar el archivo');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  // ═══════════════════════════════════════════
+  //  LOAD DATABASE
+  // ═══════════════════════════════════════════
+  async function loadDatabase() {
+    try {
+      const res = await fetch('./cards.json');
+      if (!res.ok) throw new Error('No se pudo cargar cards.json');
+      DB = await res.json();
+      init();
+    } catch (err) {
+      document.getElementById('loading').innerHTML = `
+        <div style="text-align:center;padding:40px 20px;color:var(--text-dim)">
+          <div style="font-size:48px;margin-bottom:12px">⚠️</div>
+          <p style="font-size:16px;color:var(--text)">Base de datos no encontrada</p>
+          <p style="font-size:13px;margin-top:8px">Ejecuta <code style="background:var(--surface2);padding:2px 6px;border-radius:4px">node scripts/fetch-cards.js</code> para generarla.</p>
+        </div>
+      `;
+    }
+  }
+
+  // ═══════════════════════════════════════════
+  //  INIT
+  // ═══════════════════════════════════════════
+  function init() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('sets-container').style.display = 'block';
+
+    // Populate series filter
+    const seriesSet = new Set();
+    Object.values(DB.sets).forEach(s => { if (s.series) seriesSet.add(s.series); });
+    const seriesArr = [...seriesSet].sort((a,b) => a.localeCompare(b));
+    const seriesSelect = document.getElementById('filter-series');
+    seriesArr.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = s;
+      seriesSelect.appendChild(opt);
+    });
+
+    render();
+  }
+
+  // ═══════════════════════════════════════════
+  //  RENDER
+  // ═══════════════════════════════════════════
+  function render() {
+    const search = currentSearch.toLowerCase().trim();
+
+    // Group cards by set
+    const setMap = {};
+    DB.cards.forEach(card => {
+      const set = DB.sets[card.setId];
+      if (!set) return;
+
+      // Series filter
+      if (currentSeries && set.series !== currentSeries) return;
+
+      // Search filter
+      if (search) {
+        const nameMatch = card.name.toLowerCase().includes(search);
+        const setMatch = set.name.toLowerCase().includes(search);
+        if (!nameMatch && !setMatch) return;
+      }
+
+      // Status filter
+      const have = hasCard(card.id);
+      if (currentFilter === 'have' && !have) return;
+      if (currentFilter === 'missing' && have) return;
+
+      if (!setMap[card.setId]) setMap[card.setId] = { set, cards: [] };
+      setMap[card.setId].cards.push(card);
+    });
+
+    // Sort sets by release date desc
+    const sortedSets = Object.values(setMap).sort((a, b) =>
+      (b.set.releaseDate || '').localeCompare(a.set.releaseDate || '')
+    );
+
+    const container = document.getElementById('sets-container');
+    const emptyState = document.getElementById('empty-state');
+
+    if (sortedSets.length === 0) {
+      container.style.display = 'none';
+      emptyState.style.display = 'block';
+      updateStats();
+      return;
+    }
+
+    emptyState.style.display = 'none';
+    container.style.display = 'block';
+
+    container.innerHTML = sortedSets.map(({ set, cards }) => {
+      const haveCount = cards.filter(c => hasCard(c.id)).length;
+      const pct = cards.length > 0 ? Math.round((haveCount / cards.length) * 100) : 0;
+      const isOpen = openSets.has(set.id);
+
+      return `
+        <div class="set-group${isOpen ? ' open' : ''}" data-set-id="${set.id}">
+          <div class="set-header" onclick="toggleSet('${set.id}')">
+            ${set.images?.symbol ? `<img class="set-logo" src="${set.images.symbol}" alt="${set.name}" loading="lazy" />` : '<div class="set-logo" style="font-size:20px;display:flex;align-items:center;justify-content:center">🃏</div>'}
+            <div class="set-info">
+              <div class="set-name">${set.name}</div>
+              <div class="set-meta">${set.series || ''} · ${set.releaseDate || ''} · ${cards.length} cartas</div>
+            </div>
+            <div class="set-progress">
+              <div class="set-pct">${haveCount}/${cards.length}</div>
+              <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+            </div>
+            <div class="set-chevron">▼</div>
+          </div>
+          <div class="set-cards">
+            <div class="cards-grid">
+              ${cards.map(card => renderCard(card)).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    updateStats();
+  }
+
+  function renderCard(card) {
+    const have = hasCard(card.id);
+    const statusClass = have ? 'have' : 'missing';
+    const badge = have ? '✓' : '·';
+    return `
+      <div class="card-item ${statusClass}" onclick="openModal('${card.id}')" title="${card.name}">
+        <div class="card-img-wrap">
+          ${card.imageSmall
+            ? `<img src="${card.imageSmall}" alt="${card.name}" loading="lazy" />`
+            : `<div class="card-img-placeholder">🃏</div>`}
+          <div class="card-status-badge ${statusClass}">${badge}</div>
+        </div>
+        <div class="card-info">
+          <div class="card-name">${card.name}</div>
+          <div class="card-number">#${card.number}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function updateStats() {
+    const totalOwned = Object.values(collection).filter(Boolean).length;
+    const totalCards = DB ? DB.totalCards : 0;
+    const missing = totalCards - totalOwned;
+    const pct = totalCards > 0 ? (totalOwned / totalCards * 100) : 0;
+
+    document.getElementById('stat-have').textContent = totalOwned.toLocaleString();
+    document.getElementById('stat-missing').textContent = Math.max(0, missing).toLocaleString();
+    document.getElementById('stat-total').textContent = totalCards.toLocaleString();
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('stat-pct').textContent = pct.toFixed(1) + '%';
+  }
+
+  // ═══════════════════════════════════════════
+  //  SET TOGGLE
+  // ═══════════════════════════════════════════
+  function toggleSet(setId) {
+    if (openSets.has(setId)) openSets.delete(setId);
+    else openSets.add(setId);
+
+    const el = document.querySelector(`[data-set-id="${setId}"]`);
+    if (el) el.classList.toggle('open');
+  }
+
+  // ═══════════════════════════════════════════
+  //  MODAL
+  // ═══════════════════════════════════════════
+  function openModal(cardId) {
+    const card = DB.cards.find(c => c.id === cardId);
+    if (!card) return;
+    const set = DB.sets[card.setId];
+    modalCardId = cardId;
+
+    document.getElementById('modal-img').src = card.imageLarge || card.imageSmall || '';
+    document.getElementById('modal-name').textContent = card.name;
+    document.getElementById('modal-meta').textContent =
+      `${set?.name || ''} · #${card.number}${card.rarity ? ' · ' + card.rarity : ''}`;
+
+    updateModalButtons();
+    document.getElementById('modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function updateModalButtons() {
+    const have = hasCard(modalCardId);
+    document.getElementById('modal-btn-have').style.opacity = have ? '1' : '0.4';
+    document.getElementById('modal-btn-missing').style.opacity = !have ? '1' : '0.4';
+  }
+
+  document.getElementById('modal-btn-have').addEventListener('click', () => {
+    if (!hasCard(modalCardId)) {
+      collection[modalCardId] = true;
+      saveCollection();
+      updateModalButtons();
+      updateCardInDOM(modalCardId);
+      updateStats();
+      toast('✅ Carta añadida a tu colección');
+    }
+  });
+
+  document.getElementById('modal-btn-missing').addEventListener('click', () => {
+    if (hasCard(modalCardId)) {
+      delete collection[modalCardId];
+      saveCollection();
+      updateModalButtons();
+      updateCardInDOM(modalCardId);
+      updateStats();
+      toast('🗑 Carta eliminada de tu colección');
+    }
+  });
+
+  function updateCardInDOM(cardId) {
+    const card = DB.cards.find(c => c.id === cardId);
+    if (!card) return;
+    const el = document.querySelector(`.card-item[onclick="openModal('${cardId}')"]`);
+    if (!el) return;
+    const have = hasCard(cardId);
+    el.className = `card-item ${have ? 'have' : 'missing'}`;
+    const badge = el.querySelector('.card-status-badge');
+    badge.className = `card-status-badge ${have ? 'have' : 'missing'}`;
+    badge.textContent = have ? '✓' : '·';
+
+    // Update set mini-bar
+    const setGroup = el.closest('.set-group');
+    if (setGroup) {
+      const setId = setGroup.dataset.setId;
+      const setCards = DB.cards.filter(c => c.setId === setId);
+      const haveCount = setCards.filter(c => hasCard(c.id)).length;
+      const pct = Math.round((haveCount / setCards.length) * 100);
+      const pctEl = setGroup.querySelector('.set-pct');
+      const barEl = setGroup.querySelector('.mini-bar-fill');
+      if (pctEl) pctEl.textContent = `${haveCount}/${setCards.length}`;
+      if (barEl) barEl.style.width = pct + '%';
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+    modalCardId = null;
+  }
+
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  });
+
+  // ═══════════════════════════════════════════
+  //  FILTERS
+  // ═══════════════════════════════════════════
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentFilter = tab.dataset.filter;
+      render();
+    });
+  });
+
+  document.getElementById('filter-series').addEventListener('change', (e) => {
+    currentSeries = e.target.value;
+    render();
+  });
+
+  // Search
+  let searchTimeout;
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    currentSearch = e.target.value;
+    document.getElementById('search-clear').style.display = currentSearch ? 'block' : 'none';
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(render, 200);
+  });
+
+  document.getElementById('search-clear').addEventListener('click', () => {
+    document.getElementById('search-input').value = '';
+    currentSearch = '';
+    document.getElementById('search-clear').style.display = 'none';
+    render();
+  });
+
+  // ═══════════════════════════════════════════
+  //  TOAST
+  // ═══════════════════════════════════════════
+  let toastTimeout;
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => el.classList.remove('show'), 2200);
+  }
+
+  // ═══════════════════════════════════════════
+  //  START
+  // ═══════════════════════════════════════════
+  loadCollection();
+  loadDatabase();
+</script>
+</body>
+</html>
