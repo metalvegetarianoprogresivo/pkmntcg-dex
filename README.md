@@ -1,6 +1,11 @@
 # PokéDex TCG — Collection Tracker
 
+![Pokemon TCG](https://img.shields.io/badge/Pokémon%20TCG-Standard-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
 PWA para rastrear tu colección de cartas Pokémon TCG. Funciona en móvil y desktop.
+
+🔗 **[Ver Aplicación en Vivo](https://metalvegetarianoprogresivo.github.io/pkmntcg-dex/)**
 
 ## 🚀 Setup rápido
 
