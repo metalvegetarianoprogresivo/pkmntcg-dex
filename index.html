@@ -25,12 +25,11 @@
       --missing: #e74c3c;
       --radius: 10px;
       --card-w: 140px;
+      --dex-w: 96px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html { scroll-behavior: smooth; }
-
     body {
       font-family: 'Rajdhani', sans-serif;
       background: var(--bg);
@@ -39,497 +38,424 @@
       overscroll-behavior: none;
     }
 
-    /* ─── HEADER ─────────────────────────────── */
+    /* ─── HEADER ───────────────────────────── */
     header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(13,13,18,0.92);
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,13,18,0.94);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
       padding: 0 16px;
       padding-top: env(safe-area-inset-top);
     }
-
     .header-inner {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      height: 56px;
-      max-width: 1200px;
-      margin: 0 auto;
+      display: flex; align-items: center; gap: 12px;
+      height: 56px; max-width: 1200px; margin: 0 auto;
     }
-
     .logo {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      color: var(--accent);
-      white-space: nowrap;
-      text-transform: uppercase;
+      font-size: 22px; font-weight: 700; letter-spacing: 1px;
+      color: var(--accent); white-space: nowrap; text-transform: uppercase;
     }
-
     .logo span { color: var(--text-dim); font-weight: 400; font-size: 13px; letter-spacing: 2px; display: block; line-height: 1; }
-
-    .search-wrap {
-      flex: 1;
-      position: relative;
-    }
-
+    .search-wrap { flex: 1; position: relative; }
     .search-wrap input {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 15px;
-      padding: 8px 36px 8px 12px;
-      outline: none;
-      transition: border-color 0.2s;
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: 'Rajdhani', sans-serif;
+      font-size: 15px; padding: 8px 36px 8px 12px; outline: none; transition: border-color 0.2s;
     }
-
     .search-wrap input:focus { border-color: var(--accent); }
     .search-wrap input::placeholder { color: var(--text-dim); }
-
     .search-clear {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--text-dim);
-      cursor: pointer;
-      font-size: 16px;
-      line-height: 1;
-      display: none;
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text-dim); cursor: pointer;
+      font-size: 16px; line-height: 1; display: none;
     }
 
-    /* ─── TOOLBAR ────────────────────────────── */
-    .toolbar {
+    /* ─── NAV TABS ─────────────────────────── */
+    .nav-tabs {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
+      display: flex; overflow-x: auto;
+    }
+    .nav-tab {
+      flex: 1; min-width: 120px; padding: 12px 16px;
+      background: none; border: none; border-bottom: 3px solid transparent;
+      color: var(--text-dim); font-family: 'Rajdhani', sans-serif;
+      font-size: 14px; font-weight: 700; letter-spacing: 1px;
+      cursor: pointer; transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap; text-transform: uppercase;
+    }
+    .nav-tab:hover { color: var(--text); }
+    .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ─── TOOLBAR ──────────────────────────── */
+    .toolbar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
       padding: 8px 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      overflow-x: auto;
     }
-
     .toolbar-inner {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;
     }
-
     select, .btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      padding: 6px 10px;
-      cursor: pointer;
-      white-space: nowrap;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: 'Rajdhani', sans-serif;
+      font-size: 13px; font-weight: 600; letter-spacing: 0.5px;
+      padding: 6px 10px; cursor: pointer; white-space: nowrap;
       transition: border-color 0.2s, background 0.2s;
     }
-
     select:focus, .btn:hover { border-color: var(--accent); outline: none; }
-
     .btn.accent { background: var(--accent); color: #000; border-color: var(--accent); }
     .btn.accent:hover { background: #ffd000; }
-    .btn.danger { background: transparent; border-color: var(--accent2); color: var(--accent2); }
-
-    .filter-tabs {
-      display: flex;
-      gap: 4px;
-      margin-left: auto;
-    }
-
+    .filter-tabs { display: flex; gap: 4px; margin-left: auto; }
     .filter-tab {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-dim);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 5px 10px;
-      cursor: pointer;
-      transition: all 0.2s;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-dim); font-family: 'Rajdhani', sans-serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 1px;
+      padding: 5px 10px; cursor: pointer; transition: all 0.2s;
     }
-
     .filter-tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-    /* ─── STATS BAR ──────────────────────────── */
+    /* ─── STATS BAR ────────────────────────── */
     .stats-bar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
+      background: var(--surface); border-bottom: 1px solid var(--border);
       padding: 8px 16px;
     }
-
     .stats-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
     }
-
-    .stat {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-    }
-
-    .stat-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
+    .stat { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+    .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
     .stat-dot.have { background: var(--have); }
     .stat-dot.missing { background: var(--missing); }
     .stat-dot.total { background: var(--text-dim); }
-
     .stat strong { font-weight: 700; }
     .stat span { color: var(--text-dim); }
-
     .progress-bar-wrap {
-      flex: 1;
-      min-width: 120px;
-      height: 6px;
-      background: var(--surface2);
-      border-radius: 3px;
-      overflow: hidden;
+      flex: 1; min-width: 120px; height: 6px;
+      background: var(--surface2); border-radius: 3px; overflow: hidden;
     }
-
     .progress-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--have), #27ae60);
-      border-radius: 3px;
-      transition: width 0.4s ease;
+      height: 100%; background: linear-gradient(90deg, var(--have), #27ae60);
+      border-radius: 3px; transition: width 0.4s ease;
     }
-
     .progress-pct {
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-      color: var(--accent);
-      white-space: nowrap;
+      font-family: 'Space Mono', monospace; font-size: 12px;
+      color: var(--accent); white-space: nowrap;
     }
 
-    /* ─── SETS ACCORDION ─────────────────────── */
-    .sets-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 12px 16px 80px;
-    }
-
-    .set-group {
-      margin-bottom: 8px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-
+    /* ─── SETS ACCORDION ───────────────────── */
+    .sets-container { max-width: 1200px; margin: 0 auto; padding: 12px 16px 80px; }
+    .set-group { margin-bottom: 8px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .set-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: var(--surface);
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.15s;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; background: var(--surface);
+      cursor: pointer; user-select: none; transition: background 0.15s;
     }
-
     .set-header:hover { background: var(--surface2); }
-
-    .set-logo {
-      width: 32px;
-      height: 32px;
-      object-fit: contain;
-      filter: drop-shadow(0 0 4px rgba(232,184,0,0.3));
-    }
-
+    .set-logo { width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 0 4px rgba(232,184,0,0.3)); }
     .set-info { flex: 1; min-width: 0; }
-
-    .set-name {
-      font-size: 15px;
-      font-weight: 700;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .set-meta {
-      font-size: 12px;
-      color: var(--text-dim);
-      font-family: 'Space Mono', monospace;
-    }
-
-    .set-progress {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-      min-width: 80px;
-    }
-
-    .set-pct {
-      font-family: 'Space Mono', monospace;
-      font-size: 11px;
-      color: var(--accent);
-    }
-
-    .mini-bar {
-      width: 80px;
-      height: 4px;
-      background: var(--surface2);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .mini-bar-fill {
-      height: 100%;
-      background: var(--have);
-      border-radius: 2px;
-      transition: width 0.3s;
-    }
-
-    .set-chevron {
-      color: var(--text-dim);
-      font-size: 12px;
-      transition: transform 0.2s;
-      margin-left: 4px;
-    }
-
+    .set-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .set-meta { font-size: 12px; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+    .set-progress { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; min-width: 80px; }
+    .set-pct { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent); }
+    .mini-bar { width: 80px; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+    .mini-bar-fill { height: 100%; background: var(--have); border-radius: 2px; transition: width 0.3s; }
+    .set-chevron { color: var(--text-dim); font-size: 12px; transition: transform 0.2s; margin-left: 4px; }
     .set-group.open .set-chevron { transform: rotate(180deg); }
-
-    .set-cards {
-      display: none;
-      padding: 12px;
-      background: var(--bg);
-      border-top: 1px solid var(--border);
-    }
-
+    .set-cards { display: none; padding: 12px; background: var(--bg); border-top: 1px solid var(--border); }
     .set-group.open .set-cards { display: block; }
 
-    /* ─── CARDS GRID ─────────────────────────── */
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(var(--card-w), 1fr));
-      gap: 10px;
-    }
-
+    /* ─── TCG CARDS GRID ───────────────────── */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--card-w), 1fr)); gap: 10px; }
     .card-item {
-      position: relative;
-      border-radius: 8px;
-      overflow: hidden;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: transform 0.15s, border-color 0.15s;
-      background: var(--surface);
+      position: relative; border-radius: 8px; overflow: hidden;
+      cursor: pointer; border: 2px solid transparent;
+      transition: transform 0.15s, border-color 0.15s; background: var(--surface);
     }
-
     .card-item:hover { transform: scale(1.03); }
-
     .card-item.have { border-color: var(--have); }
     .card-item.missing { border-color: var(--surface2); opacity: 0.55; }
     .card-item.missing:hover { opacity: 0.9; }
-
-    .card-img-wrap {
-      position: relative;
-      aspect-ratio: 2/3;
-      background: var(--surface2);
-    }
-
-    .card-img-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: opacity 0.3s;
-    }
-
-    .card-img-placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-    }
-
+    .card-img-wrap { position: relative; aspect-ratio: 2/3; background: var(--surface2); }
+    .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .card-img-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; }
     .card-status-badge {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
+      position: absolute; top: 5px; right: 5px; width: 20px; height: 20px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
     }
-
     .card-status-badge.have { background: var(--have); color: #000; }
     .card-status-badge.missing { background: rgba(0,0,0,0.6); color: var(--text-dim); border: 1px solid var(--border); }
+    .card-info { padding: 6px 8px; }
+    .card-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-number { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text-dim); }
 
-    .card-info {
-      padding: 6px 8px;
+    /* ─── LIVING DEX ───────────────────────── */
+    #view-dex { display: none; }
+    .dex-toolbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 16px; }
+    .dex-toolbar-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .dex-stats-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 16px; }
+    .dex-stats-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+    .dex-grid-container { max-width: 1200px; margin: 0 auto; padding: 12px 16px 80px; }
+    /* Generation headers */
+    .gen-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0 8px; margin-top: 8px;
+      border-bottom: 1px solid var(--border); margin-bottom: 10px;
     }
-
-    .card-name {
-      font-size: 13px;
-      font-weight: 600;
+    .gen-badge {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 10px;
+      font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent);
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    }
+    .gen-title { font-size: 16px; font-weight: 700; }
+    .gen-progress-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .gen-pct { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-dim); }
+    .gen-mini-bar { width: 60px; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+    .gen-mini-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
+    .dex-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(var(--dex-w), 1fr));
+      gap: 8px;
+    }
+    .dex-item {
+      position: relative; background: var(--surface); border: 2px solid var(--border);
+      border-radius: 10px; overflow: hidden; cursor: pointer;
+      transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+      display: flex; flex-direction: column; align-items: center;
+      padding-bottom: 6px;
+    }
+    .dex-item:hover { transform: scale(1.05); }
+    .dex-item.registered { border-color: var(--have); box-shadow: 0 0 12px rgba(46,204,113,0.15); }
+    .dex-item.missing-dex { opacity: 0.45; }
+    .dex-item.missing-dex:hover { opacity: 0.85; }
+
+    .dex-sprite-wrap {
+      position: relative; width: 100%; aspect-ratio: 1;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.04) 0%, transparent 70%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dex-sprite {
+      width: 80%; height: 80%; object-fit: contain;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+      transition: filter 0.2s;
+    }
+    .dex-item.missing-dex .dex-sprite { filter: grayscale(1) brightness(0.4); }
+    .dex-item.registered .dex-sprite { filter: drop-shadow(0 2px 8px rgba(46,204,113,0.35)); }
+
+    .dex-check {
+      position: absolute; top: 4px; right: 4px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--have); color: #000;
+      font-size: 10px; font-weight: 900;
+      display: none; align-items: center; justify-content: center;
+    }
+    .dex-item.registered .dex-check { display: flex; }
+
+    .dex-number {
+      font-family: 'Space Mono', monospace; font-size: 9px;
+      color: var(--text-dim); line-height: 1; margin-top: 2px;
+    }
+    .dex-name {
+      font-size: 11px; font-weight: 700;
+      text-align: center; padding: 0 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      width: 100%; text-transform: capitalize; line-height: 1.2; margin-top: 1px;
+    }
+    .dex-type-dots { display: flex; gap: 3px; margin-top: 3px; }
+    .dex-type-dot {
+      width: 6px; height: 6px; border-radius: 50%;
     }
 
-    .card-number {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      color: var(--text-dim);
+    /* type colors */
+    .t-normal { background: #A8A878; }
+    .t-fire { background: #F08030; }
+    .t-water { background: #6890F0; }
+    .t-electric { background: #F8D030; }
+    .t-grass { background: #78C850; }
+    .t-ice { background: #98D8D8; }
+    .t-fighting { background: #C03028; }
+    .t-poison { background: #A040A0; }
+    .t-ground { background: #E0C068; }
+    .t-flying { background: #A890F0; }
+    .t-psychic { background: #F85888; }
+    .t-bug { background: #A8B820; }
+    .t-rock { background: #B8A038; }
+    .t-ghost { background: #705898; }
+    .t-dragon { background: #7038F8; }
+    .t-dark { background: #705848; }
+    .t-steel { background: #B8B8D0; }
+    .t-fairy { background: #EE99AC; }
+    .t-stellar { background: #40B5A5; }
+    .t-unknown { background: #68A090; }
+
+    /* ─── DEX LOADING ──────────────────────── */
+    .dex-loading-bar-wrap {
+      max-width: 400px; margin: 0 auto; text-align: center; padding: 40px 20px;
+    }
+    .dex-loading-msg { font-size: 14px; color: var(--text-dim); font-family: 'Space Mono', monospace; margin-bottom: 16px; }
+    .dex-bar-outer { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+    .dex-bar-inner { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; width: 0%; }
+    .dex-bar-label { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-dim); margin-top: 8px; }
+
+    /* ─── DEX MODAL (Pokémon detail) ────────── */
+    #dex-modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
+      z-index: 300; align-items: flex-end; justify-content: center;
+      padding: 0;
+    }
+    #dex-modal-overlay.open { display: flex; }
+    .dex-modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px 20px 0 0; width: 100%; max-width: 560px;
+      max-height: 90vh; overflow-y: auto;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .dex-modal-header {
+      position: relative; padding: 20px 20px 0;
+      display: flex; align-items: flex-start; gap: 16px;
+    }
+    .dex-modal-sprite-wrap {
+      width: 100px; height: 100px; flex-shrink: 0;
+      background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    }
+    .dex-modal-sprite { width: 90px; height: 90px; object-fit: contain; }
+    .dex-modal-info { flex: 1; }
+    .dex-modal-number { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-dim); }
+    .dex-modal-name { font-size: 26px; font-weight: 700; text-transform: capitalize; line-height: 1.1; }
+    .dex-modal-types { display: flex; gap: 6px; margin-top: 6px; }
+    .type-pill {
+      font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      padding: 3px 10px; border-radius: 20px; color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .dex-modal-quick-btns {
+      display: flex; gap: 8px; margin-top: 10px;
+    }
+    .dex-modal-quick-btns button {
+      flex: 1; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 700;
+      font-family: 'Rajdhani', sans-serif; cursor: pointer; border: none; transition: opacity 0.2s;
+    }
+    .dex-btn-register { background: var(--have); color: #000; }
+    .dex-btn-unregister { background: var(--surface2); color: var(--text); border: 1px solid var(--border) !important; }
+
+    .dex-modal-close {
+      position: absolute; top: 16px; right: 16px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-dim); cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
     }
 
-    /* ─── EMPTY STATE ────────────────────────── */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-dim);
+    /* Cards section inside dex modal */
+    .dex-modal-cards-section { padding: 16px 20px 24px; }
+    .dex-modal-section-title {
+      font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
     }
+    .dex-modal-section-title span {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 6px;
+      font-family: 'Space Mono', monospace; font-size: 10px; color: var(--accent);
+    }
+    .dex-modal-cards-scroll { overflow-x: auto; padding-bottom: 4px; }
+    .dex-modal-cards-row { display: flex; gap: 10px; min-width: min-content; }
+    .dex-mini-card {
+      flex-shrink: 0; width: 110px; background: var(--bg);
+      border: 2px solid var(--border); border-radius: 8px;
+      overflow: hidden; cursor: pointer; transition: transform 0.15s, border-color 0.15s;
+    }
+    .dex-mini-card:hover { transform: scale(1.04); }
+    .dex-mini-card.have { border-color: var(--have); }
+    .dex-mini-card-img { position: relative; aspect-ratio: 2/3; background: var(--surface2); }
+    .dex-mini-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .dex-mini-card-img .card-status-badge { top: 4px; right: 4px; }
+    .dex-mini-card-info { padding: 5px 7px; }
+    .dex-mini-card-set { font-size: 9px; color: var(--text-dim); font-family: 'Space Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dex-mini-card-num { font-size: 10px; font-weight: 600; }
+    .dex-mini-card-rarity { font-size: 9px; color: var(--accent); }
+    .dex-no-cards { color: var(--text-dim); font-size: 13px; padding: 12px 0; }
 
-    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-state p { font-size: 16px; }
-
-    /* ─── LOADING ────────────────────────────── */
+    /* ─── SHARED LOADING ───────────────────── */
     #loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 60vh;
-      gap: 16px;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 60vh; gap: 16px;
     }
-
     .pokeball {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      border: 4px solid var(--accent);
-      position: relative;
+      width: 60px; height: 60px; border-radius: 50%;
+      border: 4px solid var(--accent); position: relative;
       animation: spin 1s linear infinite;
     }
-
     .pokeball::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
+      content: ''; position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--accent);
-      border: 2px solid var(--bg);
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); border: 2px solid var(--bg);
     }
-
     @keyframes spin { to { transform: rotate(360deg); } }
-
     .loading-text {
-      font-size: 14px;
-      color: var(--text-dim);
+      font-size: 14px; color: var(--text-dim);
       font-family: 'Space Mono', monospace;
       animation: pulse 1.5s ease-in-out infinite;
     }
-
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-    /* ─── TOAST ──────────────────────────────── */
-    #toast {
-      position: fixed;
-      bottom: calc(20px + env(safe-area-inset-bottom));
-      left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      z-index: 999;
-      transition: transform 0.3s ease;
-      white-space: nowrap;
-      pointer-events: none;
-    }
+    /* ─── EMPTY STATE ──────────────────────── */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-dim); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 16px; }
 
-    #toast.show { transform: translateX(-50%) translateY(0); }
-
-    /* ─── MODAL ──────────────────────────────── */
+    /* ─── TCG CARD MODAL ───────────────────── */
     #modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(4px);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+      z-index: 200; align-items: center; justify-content: center; padding: 20px;
     }
-
     #modal-overlay.open { display: flex; }
-
     .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 24px;
-      max-width: 340px;
-      width: 100%;
-      text-align: center;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px; max-width: 340px; width: 100%; text-align: center;
     }
-
-    .modal img {
-      max-width: 200px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-    }
-
+    .modal img { max-width: 200px; border-radius: 8px; margin-bottom: 12px; }
     .modal h3 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
     .modal p { color: var(--text-dim); font-size: 13px; margin-bottom: 16px; }
-
     .modal-btns { display: flex; gap: 8px; }
     .modal-btns button { flex: 1; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 700; font-family: 'Rajdhani', sans-serif; cursor: pointer; border: none; }
-
     .btn-have { background: var(--have); color: #000; }
     .btn-missing { background: var(--surface2); color: var(--text); border: 1px solid var(--border) !important; }
     .btn-close { margin-top: 10px; width: 100%; padding: 8px; background: none; color: var(--text-dim); font-size: 13px; font-family: 'Rajdhani', sans-serif; cursor: pointer; border: none; }
 
-    /* ─── RESPONSIVE ─────────────────────────── */
+    /* ─── TOAST ────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: calc(20px + env(safe-area-inset-bottom));
+      left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600;
+      z-index: 999; transition: transform 0.3s ease; white-space: nowrap; pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ─── RESPONSIVE ───────────────────────── */
     @media (max-width: 480px) {
-      :root { --card-w: 110px; }
+      :root { --card-w: 110px; --dex-w: 80px; }
       .logo span { display: none; }
     }
-
     @media (min-width: 768px) {
-      :root { --card-w: 160px; }
+      :root { --card-w: 160px; --dex-w: 110px; }
+      #dex-modal-overlay { align-items: center; padding: 20px; }
+      .dex-modal { border-radius: 20px; max-height: 85vh; }
     }
   </style>
 </head>
@@ -537,72 +463,86 @@
 
 <header>
   <div class="header-inner">
-    <div class="logo">
-      PokéDex TCG
-      <span>COLLECTION TRACKER</span>
-    </div>
+    <div class="logo">PokéDex TCG<span>COLLECTION TRACKER</span></div>
     <div class="search-wrap">
       <input type="search" id="search-input" placeholder="Buscar carta o set..." autocomplete="off" />
-      <button class="search-clear" id="search-clear" title="Limpiar búsqueda">✕</button>
+      <button class="search-clear" id="search-clear">✕</button>
     </div>
   </div>
 </header>
 
-<div class="toolbar">
-  <div class="toolbar-inner">
-    <select id="filter-series" title="Filtrar por serie">
-      <option value="">Todas las series</option>
-    </select>
-    <div class="filter-tabs">
-      <button class="filter-tab active" data-filter="all">TODAS</button>
-      <button class="filter-tab" data-filter="have">TENGO</button>
-      <button class="filter-tab" data-filter="missing">FALTAN</button>
-    </div>
-    <button class="btn accent" id="btn-export" title="Exportar colección">⬇ Export</button>
-    <button class="btn" id="btn-import" title="Importar colección">⬆ Import</button>
-    <input type="file" id="import-file" accept=".json" style="display:none" />
-  </div>
+<!-- Navigation -->
+<div class="nav-tabs">
+  <button class="nav-tab active" data-view="tcg">🃏 Colección TCG</button>
+  <button class="nav-tab" data-view="dex">🔴 Living Dex</button>
 </div>
 
-<div class="stats-bar">
-  <div class="stats-inner">
-    <div class="stat">
-      <div class="stat-dot have"></div>
-      <strong id="stat-have">0</strong>
-      <span>tengo</span>
+<!-- ═══ VIEW: TCG COLLECTION ════════════════════ -->
+<div id="view-tcg">
+  <div class="toolbar">
+    <div class="toolbar-inner">
+      <select id="filter-series"><option value="">Todas las series</option></select>
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">TODAS</button>
+        <button class="filter-tab" data-filter="have">TENGO</button>
+        <button class="filter-tab" data-filter="missing">FALTAN</button>
+      </div>
+      <button class="btn accent" id="btn-export">⬇ Export</button>
+      <button class="btn" id="btn-import">⬆ Import</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" />
     </div>
-    <div class="stat">
-      <div class="stat-dot missing"></div>
-      <strong id="stat-missing">0</strong>
-      <span>faltan</span>
-    </div>
-    <div class="stat">
-      <div class="stat-dot total"></div>
-      <strong id="stat-total">0</strong>
-      <span>total</span>
-    </div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
-    </div>
-    <div class="progress-pct" id="stat-pct">0.0%</div>
   </div>
-</div>
-
-<main>
+  <div class="stats-bar">
+    <div class="stats-inner">
+      <div class="stat"><div class="stat-dot have"></div><strong id="stat-have">0</strong><span>tengo</span></div>
+      <div class="stat"><div class="stat-dot missing"></div><strong id="stat-missing">0</strong><span>faltan</span></div>
+      <div class="stat"><div class="stat-dot total"></div><strong id="stat-total">0</strong><span>total</span></div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-pct" id="stat-pct">0.0%</div>
+    </div>
+  </div>
   <div id="loading">
     <div class="pokeball"></div>
     <div class="loading-text">Cargando base de datos...</div>
   </div>
-
   <div class="sets-container" id="sets-container" style="display:none"></div>
-
   <div class="empty-state" id="empty-state" style="display:none">
-    <div class="icon">🔍</div>
-    <p>No se encontraron cartas con esos filtros</p>
+    <div class="icon">🔍</div><p>No se encontraron cartas con esos filtros</p>
   </div>
-</main>
+</div>
 
-<!-- Modal detalle carta -->
+<!-- ═══ VIEW: LIVING DEX ════════════════════════ -->
+<div id="view-dex">
+  <div class="dex-toolbar">
+    <div class="dex-toolbar-inner">
+      <select id="dex-filter-gen"><option value="">Todas las generaciones</option></select>
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-dex-filter="all">TODOS</button>
+        <button class="filter-tab" data-dex-filter="registered">REGISTRADOS</button>
+        <button class="filter-tab" data-dex-filter="missing">FALTAN</button>
+      </div>
+      <select id="dex-search-wrap" style="display:none"></select>
+    </div>
+  </div>
+  <div class="dex-stats-bar">
+    <div class="dex-stats-inner">
+      <div class="stat"><div class="stat-dot have"></div><strong id="dex-stat-have">0</strong><span>registrados</span></div>
+      <div class="stat"><div class="stat-dot missing"></div><strong id="dex-stat-missing">0</strong><span>faltan</span></div>
+      <div class="stat"><div class="stat-dot total"></div><strong id="dex-stat-total">0</strong><span>total</span></div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="dex-progress-fill" style="width:0%"></div></div>
+      <div class="progress-pct" id="dex-stat-pct">0.0%</div>
+    </div>
+  </div>
+  <div class="dex-grid-container" id="dex-grid-container">
+    <div class="dex-loading-bar-wrap" id="dex-loading">
+      <div class="dex-loading-msg">Cargando Pokédex...</div>
+      <div class="dex-bar-outer"><div class="dex-bar-inner" id="dex-bar"></div></div>
+      <div class="dex-bar-label" id="dex-bar-label">0 / 0</div>
+    </div>
+  </div>
+</div>
+
+<!-- TCG Card Modal -->
 <div id="modal-overlay">
   <div class="modal">
     <img id="modal-img" src="" alt="" />
@@ -616,389 +556,648 @@
   </div>
 </div>
 
+<!-- Living Dex Pokémon Modal -->
+<div id="dex-modal-overlay">
+  <div class="dex-modal">
+    <div class="dex-modal-header">
+      <div class="dex-modal-sprite-wrap">
+        <img id="dex-modal-sprite" class="dex-modal-sprite" src="" alt="" />
+      </div>
+      <div class="dex-modal-info">
+        <div class="dex-modal-number" id="dex-modal-number"></div>
+        <div class="dex-modal-name" id="dex-modal-name"></div>
+        <div class="dex-modal-types" id="dex-modal-types"></div>
+        <div class="dex-modal-quick-btns">
+          <button class="dex-btn-register" id="dex-btn-register">✓ Registrado</button>
+          <button class="dex-btn-unregister" id="dex-btn-unregister">✕ Sin registrar</button>
+        </div>
+      </div>
+      <button class="dex-modal-close" id="dex-modal-close">✕</button>
+    </div>
+    <div class="dex-modal-cards-section">
+      <div class="dex-modal-section-title">Cartas disponibles <span id="dex-modal-card-count">0</span></div>
+      <div class="dex-modal-cards-scroll">
+        <div class="dex-modal-cards-row" id="dex-modal-cards-row"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
-  // ═══════════════════════════════════════════
-  //  STATE
-  // ═══════════════════════════════════════════
-  const STORAGE_KEY = 'pokédex-tcg-collection-v1';
-  let DB = null;           // full cards.json data
-  let collection = {};     // { [cardId]: true/false }
-  let currentFilter = 'all';
-  let currentSearch = '';
-  let currentSeries = '';
-  let openSets = new Set();
-  let modalCardId = null;
+// ════════════════════════════════════════════════
+//  CONSTANTS & STORAGE KEYS
+// ════════════════════════════════════════════════
+const TCG_KEY        = 'pokédex-tcg-collection-v1';
+const DEX_KEY        = 'pokédex-living-dex-v1';
+const POKEMON_CACHE  = 'pokédex-pokemon-list-v1';
+const CACHE_TTL      = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-  // ═══════════════════════════════════════════
-  //  LOCALSTORAGE
-  // ═══════════════════════════════════════════
-  function loadCollection() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      collection = raw ? JSON.parse(raw) : {};
-    } catch { collection = {}; }
-  }
+// ════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════
+let DB         = null;  // cards.json
+let collection = {};    // TCG collection { cardId: true }
+let dexStatus  = {};    // Living Dex { pokemonId: true }
+let pokemonList = [];   // [{ id, name, sprite, types, gen }]
+let currentView = 'tcg';
 
-  function saveCollection() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(collection));
-  }
+// TCG filters
+let currentFilter = 'all';
+let currentSearch = '';
+let currentSeries = '';
+let openSets = new Set();
+let modalCardId = null;
 
-  function hasCard(id) { return collection[id] === true; }
+// Dex filters
+let dexFilter = 'all';
+let dexGenFilter = '';
+let dexSearch = '';
+let currentDexPokemonId = null;
 
-  function toggleCard(id) {
-    collection[id] = !collection[id];
-    if (!collection[id]) delete collection[id];
-    saveCollection();
-  }
+// ════════════════════════════════════════════════
+//  LOCALSTORAGE HELPERS
+// ════════════════════════════════════════════════
+function loadStorage() {
+  try { collection = JSON.parse(localStorage.getItem(TCG_KEY)) || {}; } catch { collection = {}; }
+  try { dexStatus = JSON.parse(localStorage.getItem(DEX_KEY)) || {}; } catch { dexStatus = {}; }
+}
+function saveTCG()  { localStorage.setItem(TCG_KEY, JSON.stringify(collection)); }
+function saveDex()  { localStorage.setItem(DEX_KEY, JSON.stringify(dexStatus)); }
+function hasCard(id)   { return collection[id] === true; }
+function isDexed(id)   { return dexStatus[id] === true; }
 
-  // ═══════════════════════════════════════════
-  //  EXPORT / IMPORT
-  // ═══════════════════════════════════════════
-  document.getElementById('btn-export').addEventListener('click', () => {
-    const data = {
-      exportedAt: new Date().toISOString(),
-      version: 1,
-      collection,
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pokemon-tcg-collection-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('✅ Colección exportada');
-  });
+// ════════════════════════════════════════════════
+//  VIEW SWITCHING
+// ════════════════════════════════════════════════
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentView = tab.dataset.view;
 
-  document.getElementById('btn-import').addEventListener('click', () => {
-    document.getElementById('import-file').click();
-  });
+    document.getElementById('view-tcg').style.display = currentView === 'tcg' ? 'block' : 'none';
+    document.getElementById('view-dex').style.display = currentView === 'dex'  ? 'block' : 'none';
 
-  document.getElementById('import-file').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        if (data.collection) {
-          collection = data.collection;
-        } else {
-          // raw format fallback
-          collection = data;
-        }
-        saveCollection();
-        render();
-        toast('✅ Colección importada correctamente');
-      } catch {
-        toast('❌ Error al importar el archivo');
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  });
-
-  // ═══════════════════════════════════════════
-  //  LOAD DATABASE
-  // ═══════════════════════════════════════════
-  async function loadDatabase() {
-    try {
-      const res = await fetch('./cards.json');
-      if (!res.ok) throw new Error('No se pudo cargar cards.json');
-      DB = await res.json();
-      init();
-    } catch (err) {
-      document.getElementById('loading').innerHTML = `
-        <div style="text-align:center;padding:40px 20px;color:var(--text-dim)">
-          <div style="font-size:48px;margin-bottom:12px">⚠️</div>
-          <p style="font-size:16px;color:var(--text)">Base de datos no encontrada</p>
-          <p style="font-size:13px;margin-top:8px">Ejecuta <code style="background:var(--surface2);padding:2px 6px;border-radius:4px">node scripts/fetch-cards.js</code> para generarla.</p>
-        </div>
-      `;
+    const si = document.getElementById('search-input');
+    if (currentView === 'tcg') {
+      si.placeholder = 'Buscar carta o set...';
+    } else {
+      si.placeholder = 'Buscar Pokémon...';
+      if (pokemonList.length > 0) renderDex();
+      else initDex();
     }
+  });
+});
+
+// ════════════════════════════════════════════════
+//  TCG — EXPORT / IMPORT
+// ════════════════════════════════════════════════
+document.getElementById('btn-export').addEventListener('click', () => {
+  const data = { exportedAt: new Date().toISOString(), version: 1, collection, dexStatus };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `pokemon-tracker-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  toast('✅ Colección exportada (TCG + Living Dex)');
+});
+document.getElementById('btn-import').addEventListener('click', () => document.getElementById('import-file').click());
+document.getElementById('import-file').addEventListener('change', (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.collection) collection = data.collection;
+      if (data.dexStatus) dexStatus = data.dexStatus;
+      saveTCG(); saveDex();
+      render(); renderDex();
+      toast('✅ Datos importados correctamente');
+    } catch { toast('❌ Error al importar el archivo'); }
+  };
+  reader.readAsText(file); e.target.value = '';
+});
+
+// ════════════════════════════════════════════════
+//  TCG — LOAD & INIT
+// ════════════════════════════════════════════════
+async function loadDatabase() {
+  try {
+    const res = await fetch('./cards.json');
+    if (!res.ok) throw new Error('No se pudo cargar cards.json');
+    DB = await res.json();
+    initTCG();
+  } catch {
+    document.getElementById('loading').innerHTML = `
+      <div style="text-align:center;padding:40px 20px;color:var(--text-dim)">
+        <div style="font-size:48px;margin-bottom:12px">⚠️</div>
+        <p style="font-size:16px;color:var(--text)">Base de datos no encontrada</p>
+        <p style="font-size:13px;margin-top:8px">Ejecuta <code style="background:var(--surface2);padding:2px 6px;border-radius:4px">node scripts/fetch-cards.js</code></p>
+      </div>`;
   }
+}
 
-  // ═══════════════════════════════════════════
-  //  INIT
-  // ═══════════════════════════════════════════
-  function init() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('sets-container').style.display = 'block';
+function initTCG() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('sets-container').style.display = 'block';
+  const seriesSet = new Set();
+  Object.values(DB.sets).forEach(s => { if (s.series) seriesSet.add(s.series); });
+  const sel = document.getElementById('filter-series');
+  [...seriesSet].sort((a,b) => a.localeCompare(b)).forEach(s => {
+    const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o);
+  });
+  render();
+}
 
-    // Populate series filter
-    const seriesSet = new Set();
-    Object.values(DB.sets).forEach(s => { if (s.series) seriesSet.add(s.series); });
-    const seriesArr = [...seriesSet].sort((a,b) => a.localeCompare(b));
-    const seriesSelect = document.getElementById('filter-series');
-    seriesArr.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s;
-      opt.textContent = s;
-      seriesSelect.appendChild(opt);
-    });
-
-    render();
-  }
-
-  // ═══════════════════════════════════════════
-  //  RENDER
-  // ═══════════════════════════════════════════
-  function render() {
-    const search = currentSearch.toLowerCase().trim();
-
-    // Group cards by set
-    const setMap = {};
-    DB.cards.forEach(card => {
-      const set = DB.sets[card.setId];
-      if (!set) return;
-
-      // Series filter
-      if (currentSeries && set.series !== currentSeries) return;
-
-      // Search filter
-      if (search) {
-        const nameMatch = card.name.toLowerCase().includes(search);
-        const setMatch = set.name.toLowerCase().includes(search);
-        if (!nameMatch && !setMatch) return;
-      }
-
-      // Status filter
-      const have = hasCard(card.id);
-      if (currentFilter === 'have' && !have) return;
-      if (currentFilter === 'missing' && have) return;
-
-      if (!setMap[card.setId]) setMap[card.setId] = { set, cards: [] };
-      setMap[card.setId].cards.push(card);
-    });
-
-    // Sort sets by release date desc
-    const sortedSets = Object.values(setMap).sort((a, b) =>
-      (b.set.releaseDate || '').localeCompare(a.set.releaseDate || '')
-    );
-
-    const container = document.getElementById('sets-container');
-    const emptyState = document.getElementById('empty-state');
-
-    if (sortedSets.length === 0) {
-      container.style.display = 'none';
-      emptyState.style.display = 'block';
-      updateStats();
-      return;
-    }
-
-    emptyState.style.display = 'none';
-    container.style.display = 'block';
-
-    container.innerHTML = sortedSets.map(({ set, cards }) => {
-      const haveCount = cards.filter(c => hasCard(c.id)).length;
-      const pct = cards.length > 0 ? Math.round((haveCount / cards.length) * 100) : 0;
-      const isOpen = openSets.has(set.id);
-
-      return `
-        <div class="set-group${isOpen ? ' open' : ''}" data-set-id="${set.id}">
-          <div class="set-header" onclick="toggleSet('${set.id}')">
-            ${set.images?.symbol ? `<img class="set-logo" src="${set.images.symbol}" alt="${set.name}" loading="lazy" />` : '<div class="set-logo" style="font-size:20px;display:flex;align-items:center;justify-content:center">🃏</div>'}
-            <div class="set-info">
-              <div class="set-name">${set.name}</div>
-              <div class="set-meta">${set.series || ''} · ${set.releaseDate || ''} · ${cards.length} cartas</div>
-            </div>
-            <div class="set-progress">
-              <div class="set-pct">${haveCount}/${cards.length}</div>
-              <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
-            </div>
-            <div class="set-chevron">▼</div>
-          </div>
-          <div class="set-cards">
-            <div class="cards-grid">
-              ${cards.map(card => renderCard(card)).join('')}
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    updateStats();
-  }
-
-  function renderCard(card) {
+// ════════════════════════════════════════════════
+//  TCG — RENDER
+// ════════════════════════════════════════════════
+function render() {
+  if (!DB) return;
+  const search = currentSearch.toLowerCase().trim();
+  const setMap = {};
+  DB.cards.forEach(card => {
+    const set = DB.sets[card.setId]; if (!set) return;
+    if (currentSeries && set.series !== currentSeries) return;
+    if (search) { if (!card.name.toLowerCase().includes(search) && !set.name.toLowerCase().includes(search)) return; }
     const have = hasCard(card.id);
-    const statusClass = have ? 'have' : 'missing';
-    const badge = have ? '✓' : '·';
-    return `
-      <div class="card-item ${statusClass}" onclick="openModal('${card.id}')" title="${card.name}">
-        <div class="card-img-wrap">
-          ${card.imageSmall
-            ? `<img src="${card.imageSmall}" alt="${card.name}" loading="lazy" />`
-            : `<div class="card-img-placeholder">🃏</div>`}
-          <div class="card-status-badge ${statusClass}">${badge}</div>
+    if (currentFilter === 'have' && !have) return;
+    if (currentFilter === 'missing' && have) return;
+    if (!setMap[card.setId]) setMap[card.setId] = { set, cards: [] };
+    setMap[card.setId].cards.push(card);
+  });
+  const sortedSets = Object.values(setMap).sort((a,b) => (b.set.releaseDate||'').localeCompare(a.set.releaseDate||''));
+  const container = document.getElementById('sets-container');
+  const emptyState = document.getElementById('empty-state');
+  if (!sortedSets.length) { container.style.display='none'; emptyState.style.display='block'; updateTCGStats(); return; }
+  emptyState.style.display = 'none'; container.style.display = 'block';
+  container.innerHTML = sortedSets.map(({ set, cards }) => {
+    const haveCount = cards.filter(c => hasCard(c.id)).length;
+    const pct = cards.length ? Math.round(haveCount/cards.length*100) : 0;
+    const isOpen = openSets.has(set.id);
+    return `<div class="set-group${isOpen?' open':''}" data-set-id="${set.id}">
+      <div class="set-header" onclick="toggleSet('${set.id}')">
+        ${set.symbolUrl ? `<img class="set-logo" src="${set.symbolUrl}" alt="" loading="lazy">` : '<div class="set-logo" style="font-size:20px;display:flex;align-items:center;justify-content:center">🃏</div>'}
+        <div class="set-info">
+          <div class="set-name">${set.name}</div>
+          <div class="set-meta">${set.series||''} · ${set.releaseDate||''} · ${cards.length} cartas</div>
         </div>
-        <div class="card-info">
-          <div class="card-name">${card.name}</div>
-          <div class="card-number">#${card.number}</div>
+        <div class="set-progress">
+          <div class="set-pct">${haveCount}/${cards.length}</div>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="set-chevron">▼</div>
+      </div>
+      <div class="set-cards"><div class="cards-grid">${cards.map(renderCard).join('')}</div></div>
+    </div>`;
+  }).join('');
+  updateTCGStats();
+}
+
+function renderCard(card) {
+  const have = hasCard(card.id);
+  return `<div class="card-item ${have?'have':'missing'}" onclick="openTCGModal('${card.id}')" title="${card.name}">
+    <div class="card-img-wrap">
+      ${card.imageSmall ? `<img src="${card.imageSmall}" alt="${card.name}" loading="lazy">` : '<div class="card-img-placeholder">🃏</div>'}
+      <div class="card-status-badge ${have?'have':'missing'}">${have?'✓':'·'}</div>
+    </div>
+    <div class="card-info">
+      <div class="card-name">${card.name}</div>
+      <div class="card-number">#${card.localId||card.number||''}</div>
+    </div>
+  </div>`;
+}
+
+function updateTCGStats() {
+  const owned = Object.values(collection).filter(Boolean).length;
+  const total = DB ? DB.totalCards : 0;
+  const pct = total ? owned/total*100 : 0;
+  document.getElementById('stat-have').textContent = owned.toLocaleString();
+  document.getElementById('stat-missing').textContent = Math.max(0,total-owned).toLocaleString();
+  document.getElementById('stat-total').textContent = total.toLocaleString();
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('stat-pct').textContent = pct.toFixed(1)+'%';
+}
+
+function toggleSet(setId) {
+  openSets.has(setId) ? openSets.delete(setId) : openSets.add(setId);
+  document.querySelector(`[data-set-id="${setId}"]`)?.classList.toggle('open');
+}
+
+// TCG Filters
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#view-tcg .filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active'); currentFilter = tab.dataset.filter; render();
+  });
+});
+document.getElementById('filter-series').addEventListener('change', e => { currentSeries = e.target.value; render(); });
+
+// Dex filters
+document.querySelectorAll('[data-dex-filter]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('[data-dex-filter]').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active'); dexFilter = tab.dataset.dexFilter; renderDex();
+  });
+});
+document.getElementById('dex-filter-gen').addEventListener('change', e => { dexGenFilter = e.target.value; renderDex(); });
+
+// Shared search
+let searchTimeout;
+document.getElementById('search-input').addEventListener('input', e => {
+  const val = e.target.value;
+  document.getElementById('search-clear').style.display = val ? 'block' : 'none';
+  clearTimeout(searchTimeout);
+  if (currentView === 'tcg') { currentSearch = val; searchTimeout = setTimeout(render, 200); }
+  else { dexSearch = val.toLowerCase().trim(); searchTimeout = setTimeout(renderDex, 150); }
+});
+document.getElementById('search-clear').addEventListener('click', () => {
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-clear').style.display = 'none';
+  if (currentView === 'tcg') { currentSearch = ''; render(); }
+  else { dexSearch = ''; renderDex(); }
+});
+
+// TCG Card Modal
+function openTCGModal(cardId) {
+  const card = DB.cards.find(c => c.id === cardId); if (!card) return;
+  const set = DB.sets[card.setId]; modalCardId = cardId;
+  document.getElementById('modal-img').src = card.imageLarge || card.imageSmall || '';
+  document.getElementById('modal-name').textContent = card.name;
+  document.getElementById('modal-meta').textContent = `${set?.name||''} · #${card.localId||card.number||''}${card.rarity?' · '+card.rarity:''}`;
+  updateTCGModalBtns();
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function updateTCGModalBtns() {
+  const have = hasCard(modalCardId);
+  document.getElementById('modal-btn-have').style.opacity = have ? '1' : '0.4';
+  document.getElementById('modal-btn-missing').style.opacity = !have ? '1' : '0.4';
+}
+document.getElementById('modal-btn-have').addEventListener('click', () => {
+  if (!hasCard(modalCardId)) { collection[modalCardId] = true; saveTCG(); updateTCGModalBtns(); patchCardDOM(modalCardId); updateTCGStats(); toast('✅ Carta añadida'); }
+});
+document.getElementById('modal-btn-missing').addEventListener('click', () => {
+  if (hasCard(modalCardId)) { delete collection[modalCardId]; saveTCG(); updateTCGModalBtns(); patchCardDOM(modalCardId); updateTCGStats(); toast('🗑 Carta eliminada'); }
+});
+function patchCardDOM(cardId) {
+  const el = document.querySelector(`.card-item[onclick="openTCGModal('${cardId}')"]`); if (!el) return;
+  const have = hasCard(cardId);
+  el.className = `card-item ${have?'have':'missing'}`;
+  const badge = el.querySelector('.card-status-badge');
+  badge.className = `card-status-badge ${have?'have':'missing'}`; badge.textContent = have?'✓':'·';
+  const sg = el.closest('.set-group'); if (!sg) return;
+  const sid = sg.dataset.setId;
+  const sc = DB.cards.filter(c => c.setId === sid);
+  const hc = sc.filter(c => hasCard(c.id)).length;
+  const pct = Math.round(hc/sc.length*100);
+  sg.querySelector('.set-pct').textContent = `${hc}/${sc.length}`;
+  sg.querySelector('.mini-bar-fill').style.width = pct+'%';
+}
+function closeTCGModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow = ''; modalCardId = null; }
+document.getElementById('modal-close').addEventListener('click', closeTCGModal);
+document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target.id==='modal-overlay') closeTCGModal(); });
+
+// ════════════════════════════════════════════════
+//  LIVING DEX — GENERATIONS
+// ════════════════════════════════════════════════
+const GENERATIONS = [
+  { gen: 1, name: 'Generación I — Kanto',      start: 1,    end: 151  },
+  { gen: 2, name: 'Generación II — Johto',     start: 152,  end: 251  },
+  { gen: 3, name: 'Generación III — Hoenn',    start: 252,  end: 386  },
+  { gen: 4, name: 'Generación IV — Sinnoh',    start: 387,  end: 493  },
+  { gen: 5, name: 'Generación V — Unova',      start: 494,  end: 649  },
+  { gen: 6, name: 'Generación VI — Kalos',     start: 650,  end: 721  },
+  { gen: 7, name: 'Generación VII — Alola',    start: 722,  end: 809  },
+  { gen: 8, name: 'Generación VIII — Galar',   start: 810,  end: 905  },
+  { gen: 9, name: 'Generación IX — Paldea',    start: 906,  end: 1025 },
+];
+function getGen(id) { return GENERATIONS.find(g => id >= g.start && id <= g.end) || { gen: 0, name: 'Otros', start: 0, end: 99999 }; }
+
+// Type colors for pills
+const TYPE_COLORS = {
+  normal:'#A8A878',fire:'#F08030',water:'#6890F0',electric:'#F8D030',
+  grass:'#78C850',ice:'#98D8D8',fighting:'#C03028',poison:'#A040A0',
+  ground:'#E0C068',flying:'#A890F0',psychic:'#F85888',bug:'#A8B820',
+  rock:'#B8A038',ghost:'#705898',dragon:'#7038F8',dark:'#705848',
+  steel:'#B8B8D0',fairy:'#EE99AC',stellar:'#40B5A5'
+};
+
+// ════════════════════════════════════════════════
+//  LIVING DEX — LOAD POKEMON
+// ════════════════════════════════════════════════
+async function initDex() {
+  // Try cache first
+  try {
+    const raw = localStorage.getItem(POKEMON_CACHE);
+    if (raw) {
+      const cached = JSON.parse(raw);
+      if (Date.now() - cached.ts < CACHE_TTL && cached.list?.length > 0) {
+        pokemonList = cached.list;
+        finishDexInit();
+        return;
+      }
+    }
+  } catch {}
+
+  // Fetch from PokéAPI
+  const container = document.getElementById('dex-grid-container');
+  container.innerHTML = `<div class="dex-loading-bar-wrap" id="dex-loading">
+    <div class="dex-loading-msg">Descargando Pokédex nacional...</div>
+    <div class="dex-bar-outer"><div class="dex-bar-inner" id="dex-bar"></div></div>
+    <div class="dex-bar-label" id="dex-bar-label">Conectando con PokéAPI...</div>
+  </div>`;
+
+  try {
+    // Step 1: get full species list
+    setDexLoadBar(5, 'Obteniendo lista de Pokémon...');
+    const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0');
+    if (!res.ok) throw new Error('PokéAPI no disponible');
+    const data = await res.json();
+    const species = data.results;
+
+    // Filter to numbered Pokémon only (id 1–1025, no forms)
+    const mainPokemon = species
+      .map(p => { const parts = p.url.split('/'); return { name: p.name, id: parseInt(parts[parts.length-2]) }; })
+      .filter(p => p.id >= 1 && p.id <= 1025)
+      .sort((a,b) => a.id - b.id);
+
+    setDexLoadBar(20, `${mainPokemon.length} Pokémon encontrados. Cargando detalles...`);
+
+    // Step 2: fetch details in batches of 50
+    const BATCH = 50;
+    const total = mainPokemon.length;
+    pokemonList = [];
+
+    for (let i = 0; i < total; i += BATCH) {
+      const batch = mainPokemon.slice(i, i+BATCH);
+      const results = await Promise.all(batch.map(p =>
+        fetch(`https://pokeapi.co/api/v2/pokemon/${p.id}`)
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null)
+      ));
+      results.forEach((detail, idx) => {
+        const base = batch[idx];
+        if (!detail) {
+          pokemonList.push({ id: base.id, name: base.name, sprite: null, types: [] });
+          return;
+        }
+        pokemonList.push({
+          id: detail.id,
+          name: detail.name,
+          sprite: detail.sprites?.other?.['official-artwork']?.front_default
+                  || detail.sprites?.front_default
+                  || null,
+          types: detail.types.map(t => t.type.name),
+        });
+      });
+      const pct = 20 + Math.round((Math.min(i+BATCH, total)/total) * 75);
+      setDexLoadBar(pct, `${Math.min(i+BATCH, total)} / ${total} Pokémon`);
+    }
+
+    setDexLoadBar(100, `✅ ${pokemonList.length} Pokémon cargados`);
+
+    // Cache
+    localStorage.setItem(POKEMON_CACHE, JSON.stringify({ ts: Date.now(), list: pokemonList }));
+    await new Promise(r => setTimeout(r, 400));
+    finishDexInit();
+
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="icon">⚠️</div>
+      <p>No se pudo cargar la Pokédex</p>
+      <p style="font-size:13px;margin-top:8px;color:var(--text-dim)">${err.message}</p>
+      <button class="btn accent" style="margin-top:16px" onclick="initDex()">Reintentar</button>
+    </div>`;
+  }
+}
+
+function setDexLoadBar(pct, label) {
+  const bar = document.getElementById('dex-bar');
+  const lbl = document.getElementById('dex-bar-label');
+  if (bar) bar.style.width = pct+'%';
+  if (lbl) lbl.textContent = label;
+}
+
+function finishDexInit() {
+  // Populate gen filter
+  const sel = document.getElementById('dex-filter-gen');
+  GENERATIONS.forEach(g => {
+    const o = document.createElement('option'); o.value = g.gen; o.textContent = g.name; sel.appendChild(o);
+  });
+  renderDex();
+}
+
+// ════════════════════════════════════════════════
+//  LIVING DEX — RENDER
+// ════════════════════════════════════════════════
+function renderDex() {
+  if (!pokemonList.length) return;
+  updateDexStats();
+
+  let filtered = pokemonList;
+  if (dexSearch) filtered = filtered.filter(p => p.name.toLowerCase().includes(dexSearch) || String(p.id).includes(dexSearch));
+  if (dexGenFilter) {
+    const g = GENERATIONS.find(g => g.gen == dexGenFilter);
+    if (g) filtered = filtered.filter(p => p.id >= g.start && p.id <= g.end);
+  }
+  if (dexFilter === 'registered') filtered = filtered.filter(p => isDexed(p.id));
+  if (dexFilter === 'missing')    filtered = filtered.filter(p => !isDexed(p.id));
+
+  const container = document.getElementById('dex-grid-container');
+  if (!filtered.length) { container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>No se encontraron Pokémon</p></div>'; return; }
+
+  // Group by generation
+  const genGroups = {};
+  filtered.forEach(p => {
+    const g = getGen(p.id);
+    if (!genGroups[g.gen]) genGroups[g.gen] = { ...g, pokemon: [] };
+    genGroups[g.gen].pokemon.push(p);
+  });
+
+  const sorted = Object.values(genGroups).sort((a,b) => a.gen - b.gen);
+  container.innerHTML = sorted.map(group => {
+    const registered = group.pokemon.filter(p => isDexed(p.id)).length;
+    const total = group.pokemon.length;
+    const pct = total ? Math.round(registered/total*100) : 0;
+    return `
+      <div class="gen-header">
+        <div class="gen-badge">GEN ${group.gen||'?'}</div>
+        <div class="gen-title">${group.name}</div>
+        <div class="gen-progress-wrap">
+          <div class="gen-pct">${registered}/${total}</div>
+          <div class="gen-mini-bar"><div class="gen-mini-fill" style="width:${pct}%"></div></div>
         </div>
       </div>
+      <div class="dex-grid">
+        ${group.pokemon.map(p => renderDexItem(p)).join('')}
+      </div>
     `;
-  }
+  }).join('');
+}
 
-  function updateStats() {
-    const totalOwned = Object.values(collection).filter(Boolean).length;
-    const totalCards = DB ? DB.totalCards : 0;
-    const missing = totalCards - totalOwned;
-    const pct = totalCards > 0 ? (totalOwned / totalCards * 100) : 0;
+function renderDexItem(p) {
+  const reg = isDexed(p.id);
+  const typeDots = p.types.map(t => `<div class="dex-type-dot t-${t}"></div>`).join('');
+  const num = String(p.id).padStart(4,'0');
+  return `<div class="dex-item ${reg?'registered':'missing-dex'}" onclick="openDexModal(${p.id})">
+    <div class="dex-sprite-wrap">
+      ${p.sprite ? `<img class="dex-sprite" src="${p.sprite}" alt="${p.name}" loading="lazy">` : `<div class="dex-sprite" style="font-size:28px;display:flex;align-items:center;justify-content:center">❓</div>`}
+      <div class="dex-check">✓</div>
+    </div>
+    <div class="dex-number">#${num}</div>
+    <div class="dex-name">${p.name}</div>
+    <div class="dex-type-dots">${typeDots}</div>
+  </div>`;
+}
 
-    document.getElementById('stat-have').textContent = totalOwned.toLocaleString();
-    document.getElementById('stat-missing').textContent = Math.max(0, missing).toLocaleString();
-    document.getElementById('stat-total').textContent = totalCards.toLocaleString();
-    document.getElementById('progress-fill').style.width = pct + '%';
-    document.getElementById('stat-pct').textContent = pct.toFixed(1) + '%';
-  }
+function updateDexStats() {
+  const total = pokemonList.length;
+  const registered = pokemonList.filter(p => isDexed(p.id)).length;
+  const pct = total ? registered/total*100 : 0;
+  document.getElementById('dex-stat-have').textContent = registered.toLocaleString();
+  document.getElementById('dex-stat-missing').textContent = (total-registered).toLocaleString();
+  document.getElementById('dex-stat-total').textContent = total.toLocaleString();
+  document.getElementById('dex-progress-fill').style.width = pct+'%';
+  document.getElementById('dex-stat-pct').textContent = pct.toFixed(1)+'%';
+}
 
-  // ═══════════════════════════════════════════
-  //  SET TOGGLE
-  // ═══════════════════════════════════════════
-  function toggleSet(setId) {
-    if (openSets.has(setId)) openSets.delete(setId);
-    else openSets.add(setId);
+// ════════════════════════════════════════════════
+//  DEX MODAL
+// ════════════════════════════════════════════════
+function openDexModal(pokemonId) {
+  const p = pokemonList.find(p => p.id === pokemonId); if (!p) return;
+  currentDexPokemonId = pokemonId;
 
-    const el = document.querySelector(`[data-set-id="${setId}"]`);
-    if (el) el.classList.toggle('open');
-  }
+  document.getElementById('dex-modal-sprite').src = p.sprite || '';
+  document.getElementById('dex-modal-number').textContent = `#${String(p.id).padStart(4,'0')}`;
+  document.getElementById('dex-modal-name').textContent = p.name;
 
-  // ═══════════════════════════════════════════
-  //  MODAL
-  // ═══════════════════════════════════════════
-  function openModal(cardId) {
-    const card = DB.cards.find(c => c.id === cardId);
-    if (!card) return;
-    const set = DB.sets[card.setId];
-    modalCardId = cardId;
+  // Types
+  document.getElementById('dex-modal-types').innerHTML = p.types.map(t =>
+    `<span class="type-pill" style="background:${TYPE_COLORS[t]||'#888'}">${t}</span>`
+  ).join('');
 
-    document.getElementById('modal-img').src = card.imageLarge || card.imageSmall || '';
-    document.getElementById('modal-name').textContent = card.name;
-    document.getElementById('modal-meta').textContent =
-      `${set?.name || ''} · #${card.number}${card.rarity ? ' · ' + card.rarity : ''}`;
+  updateDexModalBtns();
 
-    updateModalButtons();
-    document.getElementById('modal-overlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function updateModalButtons() {
-    const have = hasCard(modalCardId);
-    document.getElementById('modal-btn-have').style.opacity = have ? '1' : '0.4';
-    document.getElementById('modal-btn-missing').style.opacity = !have ? '1' : '0.4';
-  }
-
-  document.getElementById('modal-btn-have').addEventListener('click', () => {
-    if (!hasCard(modalCardId)) {
-      collection[modalCardId] = true;
-      saveCollection();
-      updateModalButtons();
-      updateCardInDOM(modalCardId);
-      updateStats();
-      toast('✅ Carta añadida a tu colección');
-    }
-  });
-
-  document.getElementById('modal-btn-missing').addEventListener('click', () => {
-    if (hasCard(modalCardId)) {
-      delete collection[modalCardId];
-      saveCollection();
-      updateModalButtons();
-      updateCardInDOM(modalCardId);
-      updateStats();
-      toast('🗑 Carta eliminada de tu colección');
-    }
-  });
-
-  function updateCardInDOM(cardId) {
-    const card = DB.cards.find(c => c.id === cardId);
-    if (!card) return;
-    const el = document.querySelector(`.card-item[onclick="openModal('${cardId}')"]`);
-    if (!el) return;
-    const have = hasCard(cardId);
-    el.className = `card-item ${have ? 'have' : 'missing'}`;
-    const badge = el.querySelector('.card-status-badge');
-    badge.className = `card-status-badge ${have ? 'have' : 'missing'}`;
-    badge.textContent = have ? '✓' : '·';
-
-    // Update set mini-bar
-    const setGroup = el.closest('.set-group');
-    if (setGroup) {
-      const setId = setGroup.dataset.setId;
-      const setCards = DB.cards.filter(c => c.setId === setId);
-      const haveCount = setCards.filter(c => hasCard(c.id)).length;
-      const pct = Math.round((haveCount / setCards.length) * 100);
-      const pctEl = setGroup.querySelector('.set-pct');
-      const barEl = setGroup.querySelector('.mini-bar-fill');
-      if (pctEl) pctEl.textContent = `${haveCount}/${setCards.length}`;
-      if (barEl) barEl.style.width = pct + '%';
+  // Find all TCG cards for this Pokémon
+  let tcgCards = [];
+  if (DB) {
+    const nameLower = p.name.toLowerCase();
+    tcgCards = DB.cards.filter(c => c.name.toLowerCase() === nameLower);
+    // Also try partial (e.g. "Charizard ex", "Pikachu V")
+    if (tcgCards.length === 0) {
+      tcgCards = DB.cards.filter(c => c.name.toLowerCase().startsWith(nameLower));
     }
   }
 
-  function closeModal() {
-    document.getElementById('modal-overlay').classList.remove('open');
-    document.body.style.overflow = '';
-    modalCardId = null;
+  document.getElementById('dex-modal-card-count').textContent = tcgCards.length;
+  const row = document.getElementById('dex-modal-cards-row');
+
+  if (!tcgCards.length) {
+    row.innerHTML = `<div class="dex-no-cards">No hay cartas TCG disponibles para este Pokémon</div>`;
+  } else {
+    row.innerHTML = tcgCards.map(card => {
+      const set = DB?.sets[card.setId];
+      const have = hasCard(card.id);
+      return `<div class="dex-mini-card ${have?'have':''}" onclick="openTCGModalFromDex('${card.id}')">
+        <div class="dex-mini-card-img">
+          ${card.imageSmall ? `<img src="${card.imageSmall}" alt="${card.name}" loading="lazy">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🃏</div>'}
+          <div class="card-status-badge ${have?'have':'missing'}">${have?'✓':'·'}</div>
+        </div>
+        <div class="dex-mini-card-info">
+          <div class="dex-mini-card-set">${set?.name||''}</div>
+          <div class="dex-mini-card-num">#${card.localId||card.number||''}</div>
+          <div class="dex-mini-card-rarity">${card.rarity||''}</div>
+        </div>
+      </div>`;
+    }).join('');
   }
 
-  document.getElementById('modal-close').addEventListener('click', closeModal);
-  document.getElementById('modal-overlay').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modal-overlay')) closeModal();
-  });
+  document.getElementById('dex-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
 
-  // ═══════════════════════════════════════════
-  //  FILTERS
-  // ═══════════════════════════════════════════
-  document.querySelectorAll('.filter-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentFilter = tab.dataset.filter;
-      render();
-    });
-  });
+function updateDexModalBtns() {
+  const reg = isDexed(currentDexPokemonId);
+  document.getElementById('dex-btn-register').style.opacity = reg ? '1' : '0.4';
+  document.getElementById('dex-btn-unregister').style.opacity = !reg ? '1' : '0.4';
+}
 
-  document.getElementById('filter-series').addEventListener('change', (e) => {
-    currentSeries = e.target.value;
-    render();
-  });
-
-  // Search
-  let searchTimeout;
-  document.getElementById('search-input').addEventListener('input', (e) => {
-    currentSearch = e.target.value;
-    document.getElementById('search-clear').style.display = currentSearch ? 'block' : 'none';
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(render, 200);
-  });
-
-  document.getElementById('search-clear').addEventListener('click', () => {
-    document.getElementById('search-input').value = '';
-    currentSearch = '';
-    document.getElementById('search-clear').style.display = 'none';
-    render();
-  });
-
-  // ═══════════════════════════════════════════
-  //  TOAST
-  // ═══════════════════════════════════════════
-  let toastTimeout;
-  function toast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => el.classList.remove('show'), 2200);
+document.getElementById('dex-btn-register').addEventListener('click', () => {
+  if (!isDexed(currentDexPokemonId)) {
+    dexStatus[currentDexPokemonId] = true; saveDex();
+    updateDexModalBtns(); patchDexItemDOM(currentDexPokemonId);
+    updateDexStats(); toast('✅ Pokémon registrado en la dex');
   }
+});
+document.getElementById('dex-btn-unregister').addEventListener('click', () => {
+  if (isDexed(currentDexPokemonId)) {
+    delete dexStatus[currentDexPokemonId]; saveDex();
+    updateDexModalBtns(); patchDexItemDOM(currentDexPokemonId);
+    updateDexStats(); toast('🗑 Pokémon eliminado de la dex');
+  }
+});
 
-  // ═══════════════════════════════════════════
-  //  START
-  // ═══════════════════════════════════════════
-  loadCollection();
-  loadDatabase();
+function patchDexItemDOM(pokemonId) {
+  const p = pokemonList.find(p => p.id === pokemonId); if (!p) return;
+  const reg = isDexed(pokemonId);
+  const el = document.querySelector(`.dex-item[onclick="openDexModal(${pokemonId})"]`); if (!el) return;
+  el.className = `dex-item ${reg?'registered':'missing-dex'}`;
+  const check = el.querySelector('.dex-check'); if (check) check.style.display = reg?'flex':'none';
+  const sprite = el.querySelector('.dex-sprite');
+  if (sprite) sprite.style.filter = reg ? 'drop-shadow(0 2px 8px rgba(46,204,113,0.35))' : 'grayscale(1) brightness(0.4)';
+  // update gen header progress
+  const g = getGen(pokemonId);
+  updateGenHeader(g.gen);
+}
+
+function updateGenHeader(genNum) {
+  const genItems = pokemonList.filter(p => { const g = getGen(p.id); return g.gen === genNum; });
+  const reg = genItems.filter(p => isDexed(p.id)).length;
+  const total = genItems.length;
+  const pct = total ? Math.round(reg/total*100) : 0;
+  const headers = document.querySelectorAll('.gen-header');
+  headers.forEach(h => {
+    const badge = h.querySelector('.gen-badge');
+    if (badge && badge.textContent.includes(`GEN ${genNum}`)) {
+      h.querySelector('.gen-pct').textContent = `${reg}/${total}`;
+      h.querySelector('.gen-mini-fill').style.width = pct+'%';
+    }
+  });
+}
+
+// Open TCG modal from within dex modal
+function openTCGModalFromDex(cardId) {
+  closeDexModal();
+  setTimeout(() => openTCGModal(cardId), 50);
+}
+
+function closeDexModal() {
+  document.getElementById('dex-modal-overlay').classList.remove('open');
+  document.body.style.overflow = ''; currentDexPokemonId = null;
+}
+document.getElementById('dex-modal-close').addEventListener('click', closeDexModal);
+document.getElementById('dex-modal-overlay').addEventListener('click', e => { if (e.target.id==='dex-modal-overlay') closeDexModal(); });
+
+// ════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════
+let toastTimeout;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimeout); toastTimeout = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════
+document.getElementById('view-dex').style.display = 'none';
+loadStorage();
+loadDatabase();
 </script>
 </body>
 </html>
