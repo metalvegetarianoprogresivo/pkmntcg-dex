@@ -465,6 +465,73 @@
       #dex-modal-overlay { align-items: center; padding: 20px; }
       .dex-modal { border-radius: 20px; max-height: 85vh; }
     }
+
+    /* ─── COLLECTIONS ──────────────────────────── */
+    #coll-picker-overlay, #coll-name-overlay, #coll-comment-overlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8);
+      backdrop-filter:blur(4px); z-index:250; align-items:center; justify-content:center; padding:20px;
+    }
+    #coll-picker-overlay.open, #coll-name-overlay.open, #coll-comment-overlay.open { display:flex; }
+
+    .coll-picker-item {
+      display:flex; align-items:center; gap:10px; padding:10px 12px;
+      background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+      cursor:pointer; margin-bottom:6px; transition:border-color 0.2s, background 0.2s;
+    }
+    .coll-picker-item:hover { border-color:var(--accent); background:var(--surface); }
+    .coll-picker-item .cpi-name { flex:1; font-weight:600; font-size:14px; }
+    .coll-picker-item .cpi-count { font-family:'Space Mono',monospace; font-size:11px; color:var(--text-dim); }
+    .coll-picker-item .cpi-check { color:var(--have); font-size:12px; display:none; }
+    .coll-picker-item.in-collection .cpi-check { display:inline; }
+    .coll-picker-item.in-collection { border-color:var(--have); opacity:0.6; cursor:default; }
+
+    .coll-card {
+      display:flex; align-items:center; gap:12px; padding:12px 16px;
+      background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+      margin-bottom:8px; cursor:pointer; transition:border-color 0.2s, background 0.15s;
+    }
+    .coll-card:hover { border-color:var(--accent); background:var(--surface2); }
+    .coll-card-icon { font-size:28px; flex-shrink:0; }
+    .coll-card-info { flex:1; min-width:0; }
+    .coll-card-name { font-size:16px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .coll-card-meta { font-size:12px; color:var(--text-dim); font-family:'Space Mono',monospace; }
+    .coll-card-progress { display:flex; flex-direction:column; align-items:flex-end; gap:4px; min-width:80px; }
+    .coll-card-pct { font-family:'Space Mono',monospace; font-size:11px; color:var(--accent); }
+    .coll-card-delete {
+      background:none; border:1px solid var(--border); border-radius:6px;
+      color:var(--text-dim); cursor:pointer; padding:4px 8px; font-size:12px;
+      transition:color 0.2s, border-color 0.2s;
+    }
+    .coll-card-delete:hover { color:var(--missing); border-color:var(--missing); }
+
+    .coll-detail-card {
+      position:relative; background:var(--surface); border:2px solid var(--border);
+      border-radius:8px; overflow:hidden; transition:border-color 0.15s;
+    }
+    .coll-detail-card.obtained { border-color:var(--have); }
+    .coll-detail-card .card-img-wrap { cursor:pointer; }
+    .coll-detail-card .card-img-wrap img { width:100%; aspect-ratio:2/3; object-fit:cover; display:block; }
+    .coll-detail-card .card-info { padding:6px 8px; }
+    .coll-detail-card .card-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .coll-detail-card .card-number { font-family:'Space Mono',monospace; font-size:10px; color:var(--text-dim); }
+
+    .coll-detail-actions { display:flex; gap:4px; padding:4px 8px 6px; }
+    .coll-detail-actions button {
+      flex:1; padding:4px; border-radius:4px; font-size:10px;
+      font-family:'Rajdhani',sans-serif; font-weight:700; cursor:pointer; border:none; transition:opacity 0.2s;
+    }
+    .cda-obtained { background:var(--have); color:#000; }
+    .cda-looking { background:var(--surface2); color:var(--text); border:1px solid var(--border) !important; }
+    .cda-comment { background:var(--surface2); color:var(--accent); border:1px solid var(--border) !important; }
+    .cda-remove { background:var(--surface2); color:var(--missing); border:1px solid var(--border) !important; }
+
+    .coll-comment-badge {
+      position:absolute; bottom:60px; left:6px;
+      background:var(--accent); color:#000;
+      font-size:9px; padding:1px 5px; border-radius:4px;
+      font-weight:700; max-width:calc(100% - 12px);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
   </style>
 </head>
 <body>
@@ -484,6 +551,7 @@
   <button class="nav-tab active" data-view="tcg">🃏 Colección TCG</button>
   <button class="nav-tab" data-view="dex">🔴 Living Dex</button>
   <button class="nav-tab" data-view="wishlist">⭐ Wishlist</button>
+  <button class="nav-tab" data-view="collections">📁 Colecciones</button>
 </div>
 
 <!-- ═══ VIEW: TCG COLLECTION ════════════════════ -->
@@ -499,6 +567,7 @@
       <button class="btn accent" id="btn-export">⬇ Export</button>
       <button class="btn" id="btn-import">⬆ Import</button>
       <input type="file" id="import-file" accept=".json" style="display:none" />
+      <button class="btn" id="btn-add-all-collection">📁 Añadir filtradas a colección</button>
     </div>
   </div>
   <div class="stats-bar">
@@ -563,6 +632,51 @@
   <div id="wish-empty" class="empty-state" style="display:none">⭐ Tu wishlist está vacía.<br>Añade cartas desde el modal de cada carta.</div>
 </div>
 
+<!-- ═══ VIEW: COLLECTIONS ════════════════════════ -->
+<div id="view-collections" style="display:none">
+  <!-- Collections List -->
+  <div id="coll-list-view">
+    <div class="toolbar">
+      <div class="toolbar-inner">
+        <button class="btn accent" id="btn-new-collection">+ Nueva colección</button>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stats-inner">
+        <div class="stat"><div class="stat-dot" style="background:var(--accent)"></div><strong id="coll-stat-count">0</strong><span>colecciones</span></div>
+        <div class="stat"><div class="stat-dot total"></div><strong id="coll-stat-cards">0</strong><span>cartas totales</span></div>
+      </div>
+    </div>
+    <div class="sets-container" id="coll-list-container"></div>
+    <div id="coll-empty" class="empty-state" style="display:none">📁 No tienes colecciones.<br>Crea una nueva colección para organizar tus cartas.</div>
+  </div>
+  <!-- Collection Detail -->
+  <div id="coll-detail-view" style="display:none">
+    <div class="toolbar">
+      <div class="toolbar-inner">
+        <button class="btn" id="btn-coll-back">← Volver</button>
+        <strong id="coll-detail-name" style="font-size:16px;flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></strong>
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-coll-filter="all">TODAS</button>
+          <button class="filter-tab" data-coll-filter="obtained">OBTENIDAS</button>
+          <button class="filter-tab" data-coll-filter="missing">BUSCANDO</button>
+        </div>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stats-inner">
+        <div class="stat"><div class="stat-dot have"></div><strong id="coll-detail-obtained">0</strong><span>obtenidas</span></div>
+        <div class="stat"><div class="stat-dot missing"></div><strong id="coll-detail-looking">0</strong><span>buscando</span></div>
+        <div class="stat"><div class="stat-dot total"></div><strong id="coll-detail-total">0</strong><span>total</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="coll-detail-progress" style="width:0%"></div></div>
+        <div class="progress-pct" id="coll-detail-pct">0.0%</div>
+      </div>
+    </div>
+    <div class="sets-container" id="coll-detail-container"></div>
+    <div id="coll-detail-empty" class="empty-state" style="display:none">🔍 No hay cartas en esta colección con esos filtros.</div>
+  </div>
+</div>
+
 <!-- TCG Card Modal -->
 <div id="modal-overlay">
   <div class="modal">
@@ -574,6 +688,7 @@
       <button class="btn-missing" id="modal-btn-missing">✕ Me falta</button>
     </div>
     <button class="btn-wish" id="modal-btn-wish">☆ Añadir a wishlist</button>
+    <button class="btn-wish" id="modal-btn-collection" style="border-color:var(--text-dim);color:var(--text-dim)">📁 Añadir a colección</button>
     <button class="btn-close" id="modal-close">Cerrar</button>
   </div>
 </div>
@@ -605,6 +720,43 @@
   </div>
 </div>
 
+<!-- Collection Picker Modal -->
+<div id="coll-picker-overlay">
+  <div class="modal" style="max-width:380px">
+    <h3 id="coll-picker-title">Elegir colección</h3>
+    <div id="coll-picker-list" style="max-height:300px;overflow-y:auto;margin:12px 0"></div>
+    <button class="btn accent" id="coll-picker-new" style="width:100%;margin-bottom:8px;padding:10px">+ Crear nueva colección</button>
+    <button class="btn-close" id="coll-picker-close">Cancelar</button>
+  </div>
+</div>
+
+<!-- New Collection Name Modal -->
+<div id="coll-name-overlay">
+  <div class="modal" style="max-width:340px">
+    <h3>Nueva colección</h3>
+    <input type="text" id="coll-name-input" placeholder="Nombre de la colección..." maxlength="60"
+      style="width:100%;margin:12px 0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;padding:10px 12px;outline:none;box-sizing:border-box" />
+    <div class="modal-btns">
+      <button class="btn-have" id="coll-name-confirm">Crear</button>
+      <button class="btn-missing" id="coll-name-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Card Comment Modal -->
+<div id="coll-comment-overlay">
+  <div class="modal" style="max-width:340px">
+    <h3>Comentario</h3>
+    <p id="coll-comment-card-name" style="color:var(--text-dim);font-size:13px;margin:0"></p>
+    <textarea id="coll-comment-input" rows="3" maxlength="200" placeholder="Escribe un comentario..."
+      style="width:100%;margin:12px 0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;padding:10px 12px;outline:none;resize:vertical;box-sizing:border-box"></textarea>
+    <div class="modal-btns">
+      <button class="btn-have" id="coll-comment-save">Guardar</button>
+      <button class="btn-missing" id="coll-comment-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -615,6 +767,7 @@ const TCG_KEY        = 'pokédex-tcg-collection-v1';
 const DEX_KEY        = 'pokédex-living-dex-v1';
 const WISH_KEY       = 'pokédex-tcg-wishlist-v1';
 const POKEMON_CACHE  = 'pokédex-pokemon-list-v1';
+const COLL_KEY       = 'pokédex-collections-v1';
 const CACHE_TTL      = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 // ════════════════════════════════════════════════
@@ -626,6 +779,7 @@ let wishlist   = {};    // TCG wishlist   { cardId: true }
 let dexStatus  = {};    // Living Dex { pokemonId: true }
 let pokemonList = [];   // [{ id, name, sprite, types, gen }]
 let currentView = 'tcg';
+let cardIndex  = {};    // { cardId: cardObj } built once in initTCG()
 
 // TCG filters
 let currentFilter = 'all';
@@ -640,20 +794,75 @@ let dexGenFilter = '';
 let dexSearch = '';
 let currentDexPokemonId = null;
 
+// Collections
+let collections = {};
+let currentCollectionId = null;
+let collDetailFilter = 'all';
+let collDetailSearch = '';
+let collPickerCallback = null;
+let commentEditCollId = null;
+let commentEditCardId = null;
+
 // ════════════════════════════════════════════════
 //  LOCALSTORAGE HELPERS
 // ════════════════════════════════════════════════
 function loadStorage() {
-  try { collection = JSON.parse(localStorage.getItem(TCG_KEY)) || {}; } catch { collection = {}; }
-  try { wishlist   = JSON.parse(localStorage.getItem(WISH_KEY)) || {}; } catch { wishlist = {}; }
-  try { dexStatus  = JSON.parse(localStorage.getItem(DEX_KEY)) || {}; } catch { dexStatus = {}; }
+  try { collection  = JSON.parse(localStorage.getItem(TCG_KEY))  || {}; } catch { collection  = {}; }
+  try { wishlist    = JSON.parse(localStorage.getItem(WISH_KEY)) || {}; } catch { wishlist    = {}; }
+  try { dexStatus   = JSON.parse(localStorage.getItem(DEX_KEY))  || {}; } catch { dexStatus   = {}; }
+  try { collections = JSON.parse(localStorage.getItem(COLL_KEY)) || {}; } catch { collections = {}; }
 }
-function saveTCG()     { localStorage.setItem(TCG_KEY,  JSON.stringify(collection)); }
-function saveWish()    { localStorage.setItem(WISH_KEY, JSON.stringify(wishlist)); }
-function saveDex()     { localStorage.setItem(DEX_KEY,  JSON.stringify(dexStatus)); }
-function hasCard(id)   { return collection[id] === true; }
-function isWished(id)  { return wishlist[id] === true; }
-function isDexed(id)   { return dexStatus[id] === true; }
+function saveTCG()         { localStorage.setItem(TCG_KEY,  JSON.stringify(collection)); }
+function saveWish()        { localStorage.setItem(WISH_KEY, JSON.stringify(wishlist)); }
+function saveDex()         { localStorage.setItem(DEX_KEY,  JSON.stringify(dexStatus)); }
+function saveCollections() { localStorage.setItem(COLL_KEY, JSON.stringify(collections)); }
+function hasCard(id)       { return collection[id] === true; }
+function isWished(id)      { return wishlist[id] === true; }
+function isDexed(id)       { return dexStatus[id] === true; }
+
+// ════════════════════════════════════════════════
+//  COLLECTIONS — CRUD
+// ════════════════════════════════════════════════
+function generateCollectionId() {
+  return 'col_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+}
+function escapeHtml(str) {
+  const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+}
+function createCollection(name) {
+  const id = generateCollectionId();
+  collections[id] = { name: name.trim(), createdAt: new Date().toISOString(), cards: {} };
+  saveCollections();
+  return id;
+}
+function deleteCollection(collId) {
+  delete collections[collId];
+  saveCollections();
+  if (currentCollectionId === collId) { currentCollectionId = null; showCollListView(); }
+}
+function addCardToCollection(collId, cardId) {
+  const c = collections[collId]; if (!c) return;
+  if (!c.cards[cardId]) { c.cards[cardId] = { obtained: false, comment: '' }; saveCollections(); }
+}
+function removeCardFromCollection(collId, cardId) {
+  const c = collections[collId]; if (!c) return;
+  delete c.cards[cardId]; saveCollections();
+}
+function toggleCardObtained(collId, cardId) {
+  const c = collections[collId]; if (!c || !c.cards[cardId]) return;
+  c.cards[cardId].obtained = !c.cards[cardId].obtained; saveCollections();
+}
+function setCardComment(collId, cardId, comment) {
+  const c = collections[collId]; if (!c || !c.cards[cardId]) return;
+  c.cards[cardId].comment = comment.trim(); saveCollections();
+}
+function addMultipleCardsToCollection(collId, cardIds) {
+  const c = collections[collId]; if (!c) return 0;
+  let added = 0;
+  cardIds.forEach(id => { if (!c.cards[id]) { c.cards[id] = { obtained: false, comment: '' }; added++; } });
+  saveCollections();
+  return added;
+}
 
 // ════════════════════════════════════════════════
 //  VIEW SWITCHING
@@ -664,9 +873,10 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.classList.add('active');
     currentView = tab.dataset.view;
 
-    document.getElementById('view-tcg').style.display      = currentView === 'tcg'      ? 'block' : 'none';
-    document.getElementById('view-dex').style.display      = currentView === 'dex'      ? 'block' : 'none';
-    document.getElementById('view-wishlist').style.display = currentView === 'wishlist' ? 'block' : 'none';
+    document.getElementById('view-tcg').style.display         = currentView === 'tcg'         ? 'block' : 'none';
+    document.getElementById('view-dex').style.display         = currentView === 'dex'         ? 'block' : 'none';
+    document.getElementById('view-wishlist').style.display    = currentView === 'wishlist'    ? 'block' : 'none';
+    document.getElementById('view-collections').style.display = currentView === 'collections' ? 'block' : 'none';
 
     const si = document.getElementById('search-input');
     if (currentView === 'tcg') {
@@ -674,6 +884,10 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
     } else if (currentView === 'wishlist') {
       si.placeholder = 'Buscar en wishlist...';
       renderWishlist();
+    } else if (currentView === 'collections') {
+      si.placeholder = 'Buscar en colecciones...';
+      if (currentCollectionId) renderCollectionDetail();
+      else renderCollectionsList();
     } else {
       si.placeholder = 'Buscar Pokémon...';
       if (pokemonList.length > 0) renderDex();
@@ -686,13 +900,13 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
 //  TCG — EXPORT / IMPORT
 // ════════════════════════════════════════════════
 document.getElementById('btn-export').addEventListener('click', () => {
-  const data = { exportedAt: new Date().toISOString(), version: 1, collection, wishlist, dexStatus };
+  const data = { exportedAt: new Date().toISOString(), version: 2, collection, wishlist, dexStatus, collections };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `pokemon-tracker-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
-  toast('✅ Colección exportada (TCG + Wishlist + Living Dex)');
+  toast('✅ Colección exportada (TCG + Wishlist + Living Dex + Colecciones)');
 });
 document.getElementById('btn-import').addEventListener('click', () => document.getElementById('import-file').click());
 document.getElementById('import-file').addEventListener('change', (e) => {
@@ -701,15 +915,38 @@ document.getElementById('import-file').addEventListener('change', (e) => {
   reader.onload = ev => {
     try {
       const data = JSON.parse(ev.target.result);
-      if (data.collection) collection = data.collection;
-      if (data.wishlist)   wishlist   = data.wishlist;
-      if (data.dexStatus)  dexStatus  = data.dexStatus;
-      saveTCG(); saveWish(); saveDex();
+      if (data.collection)  collection  = data.collection;
+      if (data.wishlist)    wishlist    = data.wishlist;
+      if (data.dexStatus)   dexStatus   = data.dexStatus;
+      if (data.collections) collections = data.collections;
+      saveTCG(); saveWish(); saveDex(); saveCollections();
       render(); renderDex();
       toast('✅ Datos importados correctamente');
     } catch { toast('❌ Error al importar el archivo'); }
   };
   reader.readAsText(file); e.target.value = '';
+});
+
+// Add all filtered cards to a collection
+document.getElementById('btn-add-all-collection').addEventListener('click', () => {
+  if (!DB) return;
+  const search = currentSearch.toLowerCase().trim();
+  const visibleIds = [];
+  DB.cards.forEach(card => {
+    const set = DB.sets[card.setId]; if (!set) return;
+    if (currentSeries && set.series !== currentSeries) return;
+    if (search && !card.name.toLowerCase().includes(search) && !set.name.toLowerCase().includes(search)) return;
+    const have = hasCard(card.id);
+    if (currentFilter === 'have' && !have) return;
+    if (currentFilter === 'missing' && have) return;
+    visibleIds.push(card.id);
+  });
+  if (!visibleIds.length) { toast('⚠️ No hay cartas visibles para añadir'); return; }
+  if (visibleIds.length > 500 && !confirm(`Vas a añadir ${visibleIds.length.toLocaleString()} cartas. ¿Continuar?`)) return;
+  openCollectionPicker((collId) => {
+    const added = addMultipleCardsToCollection(collId, visibleIds);
+    toast(`📁 ${added} cartas añadidas a ${collections[collId].name}`);
+  }, null);
 });
 
 // ════════════════════════════════════════════════
@@ -734,6 +971,8 @@ async function loadDatabase() {
 function initTCG() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('sets-container').style.display = 'block';
+  // Build card lookup index
+  cardIndex = {}; DB.cards.forEach(c => { cardIndex[c.id] = c; });
   const seriesSet = new Set();
   Object.values(DB.sets).forEach(s => { if (s.series) seriesSet.add(s.series); });
   const sel = document.getElementById('filter-series');
@@ -864,8 +1103,278 @@ function toggleSet(setId) {
   document.querySelector(`[data-set-id="${setId}"]`)?.classList.toggle('open');
 }
 
+// ════════════════════════════════════════════════
+//  COLLECTIONS — LIST VIEW
+// ════════════════════════════════════════════════
+function renderCollectionsList() {
+  const container = document.getElementById('coll-list-container');
+  const emptyEl = document.getElementById('coll-empty');
+  const entries = Object.entries(collections);
+  const totalCards = entries.reduce((s, [, c]) => s + Object.keys(c.cards).length, 0);
+  document.getElementById('coll-stat-count').textContent = entries.length;
+  document.getElementById('coll-stat-cards').textContent = totalCards.toLocaleString();
+  if (!entries.length) { container.innerHTML = ''; emptyEl.style.display = 'block'; return; }
+  emptyEl.style.display = 'none';
+  entries.sort((a, b) => (b[1].createdAt || '').localeCompare(a[1].createdAt || ''));
+  container.innerHTML = '<div style="padding:12px 16px;max-width:1200px;margin:0 auto">' +
+    entries.map(([id, coll]) => {
+      const cc = Object.keys(coll.cards).length;
+      const oc = Object.values(coll.cards).filter(c => c.obtained).length;
+      const pct = cc ? Math.round(oc / cc * 100) : 0;
+      const dateStr = coll.createdAt ? new Date(coll.createdAt).toLocaleDateString('es-ES') : '';
+      return `<div class="coll-card" onclick="openCollectionDetail('${id}')">
+        <div class="coll-card-icon">📁</div>
+        <div class="coll-card-info">
+          <div class="coll-card-name">${escapeHtml(coll.name)}</div>
+          <div class="coll-card-meta">${cc} cartas · ${oc} obtenidas · ${dateStr}</div>
+        </div>
+        <div class="coll-card-progress">
+          <div class="coll-card-pct">${oc}/${cc}</div>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="coll-card-actions" onclick="event.stopPropagation()">
+          <button class="coll-card-delete" onclick="confirmDeleteCollection('${id}')" title="Eliminar">🗑</button>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+}
+
+function confirmDeleteCollection(collId) {
+  const c = collections[collId]; if (!c) return;
+  if (confirm('¿Eliminar la colección "' + c.name + '"? Esta acción no se puede deshacer.')) {
+    deleteCollection(collId);
+    renderCollectionsList();
+    toast('🗑 Colección eliminada');
+  }
+}
+
+// ════════════════════════════════════════════════
+//  COLLECTIONS — DETAIL VIEW
+// ════════════════════════════════════════════════
+function openCollectionDetail(collId) {
+  currentCollectionId = collId;
+  collDetailFilter = 'all';
+  collDetailSearch = '';
+  document.getElementById('coll-list-view').style.display = 'none';
+  document.getElementById('coll-detail-view').style.display = 'block';
+  document.querySelectorAll('[data-coll-filter]').forEach(t => t.classList.remove('active'));
+  document.querySelector('[data-coll-filter="all"]').classList.add('active');
+  renderCollectionDetail();
+}
+
+function showCollListView() {
+  currentCollectionId = null;
+  document.getElementById('coll-detail-view').style.display = 'none';
+  document.getElementById('coll-list-view').style.display = 'block';
+  renderCollectionsList();
+}
+
+function renderCollectionDetail() {
+  if (!DB || !currentCollectionId) return;
+  const coll = collections[currentCollectionId];
+  if (!coll) { showCollListView(); return; }
+  document.getElementById('coll-detail-name').textContent = coll.name;
+  const search = collDetailSearch.toLowerCase().trim();
+  const cardEntries = Object.entries(coll.cards)
+    .map(([cardId, status]) => { const card = cardIndex[cardId]; return card ? { card, status } : null; })
+    .filter(Boolean)
+    .filter(({ card, status }) => {
+      if (search && !card.name.toLowerCase().includes(search)) return false;
+      if (collDetailFilter === 'obtained' && !status.obtained) return false;
+      if (collDetailFilter === 'missing' && status.obtained) return false;
+      return true;
+    });
+  const allCards = Object.values(coll.cards);
+  const total = allCards.length;
+  const obtained = allCards.filter(c => c.obtained).length;
+  const pct = total ? obtained / total * 100 : 0;
+  document.getElementById('coll-detail-obtained').textContent = obtained;
+  document.getElementById('coll-detail-looking').textContent = total - obtained;
+  document.getElementById('coll-detail-total').textContent = total;
+  document.getElementById('coll-detail-progress').style.width = pct + '%';
+  document.getElementById('coll-detail-pct').textContent = pct.toFixed(1) + '%';
+  const container = document.getElementById('coll-detail-container');
+  const emptyEl = document.getElementById('coll-detail-empty');
+  if (!cardEntries.length) { container.innerHTML = ''; emptyEl.style.display = 'block'; return; }
+  emptyEl.style.display = 'none';
+  const setMap = {};
+  cardEntries.forEach(({ card, status }) => {
+    const set = DB.sets[card.setId]; if (!set) return;
+    if (!setMap[card.setId]) setMap[card.setId] = { set, items: [] };
+    setMap[card.setId].items.push({ card, status });
+  });
+  const sortedSets = Object.values(setMap).sort((a, b) => (b.set.releaseDate || '').localeCompare(a.set.releaseDate || ''));
+  const collId = currentCollectionId;
+  container.innerHTML = sortedSets.map(({ set, items }) => {
+    const isOpen = openSets.has(set.id);
+    return `<div class="set-group${isOpen ? ' open' : ''}" data-set-id="${set.id}">
+      <div class="set-header" onclick="toggleSet('${set.id}')">
+        ${set.symbolUrl ? `<img class="set-logo" src="${set.symbolUrl}" alt="" loading="lazy">` : '<div class="set-logo" style="font-size:20px;display:flex;align-items:center;justify-content:center">🃏</div>'}
+        <div class="set-info">
+          <div class="set-name">${set.name}</div>
+          <div class="set-meta">${items.length} carta${items.length !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="set-chevron">▼</div>
+      </div>
+      <div class="set-cards"><div class="cards-grid">${items.map(({ card, status }) =>
+        renderCollDetailCard(card, status, collId)
+      ).join('')}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderCollDetailCard(card, status, collId) {
+  return `<div class="coll-detail-card ${status.obtained ? 'obtained' : ''}" data-coll-card-id="${card.id}">
+    <div class="card-img-wrap" onclick="openTCGModal('${card.id}')">
+      ${card.imageSmall ? `<img src="${card.imageSmall}" alt="${escapeHtml(card.name)}" loading="lazy">` : '<div class="card-img-placeholder">🃏</div>'}
+    </div>
+    ${status.comment ? `<div class="coll-comment-badge" title="${escapeHtml(status.comment)}">${escapeHtml(status.comment)}</div>` : ''}
+    <div class="card-info">
+      <div class="card-name">${card.name}</div>
+      <div class="card-number">#${card.localId || card.number || ''}</div>
+    </div>
+    <div class="coll-detail-actions">
+      <button class="${status.obtained ? 'cda-obtained' : 'cda-looking'}" onclick="toggleCollObtained('${collId}','${card.id}')" title="${status.obtained ? 'Marcar como buscando' : 'Marcar como obtenida'}">
+        ${status.obtained ? '✓' : '○'}
+      </button>
+      <button class="cda-comment" onclick="openCommentModal('${collId}','${card.id}')" title="Comentario">💬</button>
+      <button class="cda-remove" onclick="removeFromCollDetail('${collId}','${card.id}')" title="Quitar">✕</button>
+    </div>
+  </div>`;
+}
+
+function toggleCollObtained(collId, cardId) {
+  toggleCardObtained(collId, cardId);
+  renderCollectionDetail();
+}
+
+function removeFromCollDetail(collId, cardId) {
+  removeCardFromCollection(collId, cardId);
+  renderCollectionDetail();
+  toast('✕ Carta eliminada de la colección');
+}
+
+// ════════════════════════════════════════════════
+//  COLLECTIONS — PICKER MODAL
+// ════════════════════════════════════════════════
+function openCollectionPicker(callback, cardId) {
+  collPickerCallback = callback;
+  const list = document.getElementById('coll-picker-list');
+  const entries = Object.entries(collections);
+  if (!entries.length) {
+    list.innerHTML = '<p style="color:var(--text-dim);font-size:13px;padding:12px">No hay colecciones. Crea una primero.</p>';
+  } else {
+    entries.sort((a, b) => (b[1].createdAt || '').localeCompare(a[1].createdAt || ''));
+    list.innerHTML = entries.map(([id, coll]) => {
+      const cc = Object.keys(coll.cards).length;
+      const alreadyIn = cardId ? !!coll.cards[cardId] : false;
+      return `<div class="coll-picker-item${alreadyIn ? ' in-collection' : ''}" ${alreadyIn ? '' : `onclick="pickCollection('${id}')"`}>
+        <span class="cpi-name">${escapeHtml(coll.name)}</span>
+        <span class="cpi-count">${cc} cartas</span>
+        <span class="cpi-check">✓ incluida</span>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('coll-picker-overlay').classList.add('open');
+}
+
+function pickCollection(collId) {
+  closeCollectionPicker();
+  if (collPickerCallback) { collPickerCallback(collId); collPickerCallback = null; }
+}
+
+function closeCollectionPicker() {
+  document.getElementById('coll-picker-overlay').classList.remove('open');
+}
+
+document.getElementById('coll-picker-close').addEventListener('click', closeCollectionPicker);
+document.getElementById('coll-picker-overlay').addEventListener('click', e => {
+  if (e.target.id === 'coll-picker-overlay') closeCollectionPicker();
+});
+document.getElementById('coll-picker-new').addEventListener('click', () => {
+  const savedCallback = collPickerCallback;
+  collPickerCallback = null;
+  closeCollectionPicker();
+  openNewCollectionModal((newId) => {
+    if (savedCallback) { savedCallback(newId); }
+  });
+});
+
+// ════════════════════════════════════════════════
+//  COLLECTIONS — NAME MODAL
+// ════════════════════════════════════════════════
+let _afterCreateColl = null;
+function openNewCollectionModal(afterCreate) {
+  _afterCreateColl = afterCreate || null;
+  document.getElementById('coll-name-input').value = '';
+  document.getElementById('coll-name-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('coll-name-input').focus(), 50);
+}
+function confirmNewCollection() {
+  const name = document.getElementById('coll-name-input').value.trim();
+  if (!name) { toast('⚠️ Escribe un nombre'); return; }
+  const id = createCollection(name);
+  closeNewCollectionModal();
+  toast('📁 Colección creada: ' + name);
+  if (_afterCreateColl) { _afterCreateColl(id); _afterCreateColl = null; }
+  if (currentView === 'collections' && !currentCollectionId) renderCollectionsList();
+}
+function closeNewCollectionModal() {
+  document.getElementById('coll-name-overlay').classList.remove('open');
+}
+document.getElementById('coll-name-confirm').addEventListener('click', confirmNewCollection);
+document.getElementById('coll-name-cancel').addEventListener('click', closeNewCollectionModal);
+document.getElementById('coll-name-overlay').addEventListener('click', e => {
+  if (e.target.id === 'coll-name-overlay') closeNewCollectionModal();
+});
+document.getElementById('coll-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmNewCollection();
+});
+
+// ════════════════════════════════════════════════
+//  COLLECTIONS — COMMENT MODAL
+// ════════════════════════════════════════════════
+function openCommentModal(collId, cardId) {
+  commentEditCollId = collId; commentEditCardId = cardId;
+  const coll = collections[collId];
+  const card = cardIndex[cardId];
+  document.getElementById('coll-comment-card-name').textContent = card?.name || cardId;
+  document.getElementById('coll-comment-input').value = coll?.cards[cardId]?.comment || '';
+  document.getElementById('coll-comment-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('coll-comment-input').focus(), 50);
+}
+function saveComment() {
+  setCardComment(commentEditCollId, commentEditCardId, document.getElementById('coll-comment-input').value);
+  closeCommentModal();
+  renderCollectionDetail();
+  toast('💬 Comentario guardado');
+}
+function closeCommentModal() {
+  document.getElementById('coll-comment-overlay').classList.remove('open');
+  commentEditCollId = null; commentEditCardId = null;
+}
+document.getElementById('coll-comment-save').addEventListener('click', saveComment);
+document.getElementById('coll-comment-cancel').addEventListener('click', closeCommentModal);
+document.getElementById('coll-comment-overlay').addEventListener('click', e => {
+  if (e.target.id === 'coll-comment-overlay') closeCommentModal();
+});
+
+// Collections list: new collection & back buttons
+document.getElementById('btn-new-collection').addEventListener('click', () => openNewCollectionModal());
+document.getElementById('btn-coll-back').addEventListener('click', showCollListView);
+
+// Collection detail filter tabs
+document.querySelectorAll('[data-coll-filter]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('[data-coll-filter]').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    collDetailFilter = tab.dataset.collFilter;
+    renderCollectionDetail();
+  });
+});
+
 // TCG Filters
-document.querySelectorAll('.filter-tab').forEach(tab => {
+document.querySelectorAll('#view-tcg .filter-tab[data-filter]').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('#view-tcg .filter-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active'); currentFilter = tab.dataset.filter; render();
@@ -890,6 +1399,7 @@ document.getElementById('search-input').addEventListener('input', e => {
   clearTimeout(searchTimeout);
   if (currentView === 'tcg') { currentSearch = val; searchTimeout = setTimeout(render, 200); }
   else if (currentView === 'wishlist') { currentSearch = val; searchTimeout = setTimeout(renderWishlist, 200); }
+  else if (currentView === 'collections') { collDetailSearch = val; if (currentCollectionId) searchTimeout = setTimeout(renderCollectionDetail, 200); }
   else { dexSearch = val.toLowerCase().trim(); searchTimeout = setTimeout(renderDex, 150); }
 });
 document.getElementById('search-clear').addEventListener('click', () => {
@@ -897,6 +1407,7 @@ document.getElementById('search-clear').addEventListener('click', () => {
   document.getElementById('search-clear').style.display = 'none';
   if (currentView === 'tcg') { currentSearch = ''; render(); }
   else if (currentView === 'wishlist') { currentSearch = ''; renderWishlist(); }
+  else if (currentView === 'collections') { collDetailSearch = ''; if (currentCollectionId) renderCollectionDetail(); }
   else { dexSearch = ''; renderDex(); }
 });
 
@@ -974,6 +1485,13 @@ document.getElementById('modal-btn-wish').addEventListener('click', () => {
   updateWishModalBtn();
   patchCardDOMWish(modalCardId);
   if (currentView === 'wishlist') renderWishlist();
+});
+document.getElementById('modal-btn-collection').addEventListener('click', () => {
+  if (!modalCardId) return;
+  openCollectionPicker((collId) => {
+    addCardToCollection(collId, modalCardId);
+    toast('📁 Añadida a ' + collections[collId].name);
+  }, modalCardId);
 });
 function closeTCGModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow = ''; modalCardId = null; }
 document.getElementById('modal-close').addEventListener('click', closeTCGModal);
