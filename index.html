@@ -184,10 +184,11 @@
     .card-status-badge {
       position: absolute; top: 5px; right: 5px; width: 20px; height: 20px;
       border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700;
+      font-size: 11px; font-weight: 700; cursor: pointer;
     }
-    .card-status-badge.have { background: var(--have); color: #000; }
-    .card-status-badge.missing { background: rgba(0,0,0,0.6); color: var(--text-dim); border: 1px solid var(--border); }
+    .card-status-badge.have { background: var(--have); color: #000; cursor: default; }
+    .card-status-badge.missing { background: var(--have); color: #000; opacity: 0; transition: opacity 0.15s; }
+    .card-item.missing:hover .card-status-badge.missing { opacity: 0.5; }
     .card-info { padding: 6px 8px; }
     .card-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .card-number { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text-dim); }
@@ -763,7 +764,7 @@ function renderCard(card) {
   return `<div class="card-item ${have?'have':'missing'}" onclick="openTCGModal('${card.id}')" title="${card.name}">
     <div class="card-img-wrap">
       ${card.imageSmall ? `<img src="${card.imageSmall}" alt="${card.name}" loading="lazy">` : '<div class="card-img-placeholder">🃏</div>'}
-      <div class="card-status-badge ${have?'have':'missing'}">${have?'✓':'·'}</div>
+      <div class="card-status-badge ${have?'have':'missing'}" onclick="quickAddCard(event,'${card.id}')">✓</div>
     </div>
     <div class="card-info">
       <div class="card-name">${card.name}</div>
@@ -844,12 +845,22 @@ document.getElementById('modal-btn-have').addEventListener('click', () => {
 document.getElementById('modal-btn-missing').addEventListener('click', () => {
   if (hasCard(modalCardId)) { delete collection[modalCardId]; saveTCG(); updateTCGModalBtns(); patchCardDOM(modalCardId); updateTCGStats(); toast('🗑 Carta eliminada'); }
 });
+function quickAddCard(event, cardId) {
+  event.stopPropagation();
+  if (hasCard(cardId)) return;
+  collection[cardId] = true;
+  saveTCG();
+  patchCardDOM(cardId);
+  updateTCGStats();
+  toast('✅ Carta añadida');
+}
+
 function patchCardDOM(cardId) {
   const el = document.querySelector(`.card-item[onclick="openTCGModal('${cardId}')"]`); if (!el) return;
   const have = hasCard(cardId);
   el.className = `card-item ${have?'have':'missing'}`;
   const badge = el.querySelector('.card-status-badge');
-  badge.className = `card-status-badge ${have?'have':'missing'}`; badge.textContent = have?'✓':'·';
+  badge.className = `card-status-badge ${have?'have':'missing'}`;
   const sg = el.closest('.set-group'); if (!sg) return;
   const sid = sg.dataset.setId;
   const sc = DB.cards.filter(c => c.setId === sid);
