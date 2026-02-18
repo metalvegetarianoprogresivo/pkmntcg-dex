@@ -254,9 +254,11 @@
       width: 18px; height: 18px; border-radius: 50%;
       background: var(--have); color: #000;
       font-size: 10px; font-weight: 900;
-      display: none; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.15s; cursor: pointer;
     }
-    .dex-item.registered .dex-check { display: flex; }
+    .dex-item.missing-dex:hover .dex-check { opacity: 0.5; }
+    .dex-item.registered .dex-check { opacity: 1; cursor: default; }
 
     .dex-number {
       font-family: 'Space Mono', monospace; font-size: 9px;
@@ -1045,7 +1047,7 @@ function renderDexItem(p) {
   return `<div class="dex-item ${reg?'registered':'missing-dex'}" onclick="openDexModal(${p.id})">
     <div class="dex-sprite-wrap">
       ${p.sprite ? `<img class="dex-sprite" src="${p.sprite}" alt="${p.name}" loading="lazy">` : `<div class="dex-sprite" style="font-size:28px;display:flex;align-items:center;justify-content:center">❓</div>`}
-      <div class="dex-check">✓</div>
+      <div class="dex-check" onclick="quickRegisterDex(event, ${p.id})">✓</div>
     </div>
     <div class="dex-number">#${num}</div>
     <div class="dex-name">${p.name}</div>
@@ -1126,6 +1128,16 @@ function updateDexModalBtns() {
   document.getElementById('dex-btn-unregister').style.opacity = !reg ? '1' : '0.4';
 }
 
+function quickRegisterDex(event, pokemonId) {
+  event.stopPropagation();
+  if (isDexed(pokemonId)) return;
+  dexStatus[pokemonId] = true;
+  saveDex();
+  patchDexItemDOM(pokemonId);
+  updateDexStats();
+  toast('✅ Pokémon registrado en la dex');
+}
+
 document.getElementById('dex-btn-register').addEventListener('click', () => {
   if (!isDexed(currentDexPokemonId)) {
     dexStatus[currentDexPokemonId] = true; saveDex();
@@ -1146,7 +1158,6 @@ function patchDexItemDOM(pokemonId) {
   const reg = isDexed(pokemonId);
   const el = document.querySelector(`.dex-item[onclick="openDexModal(${pokemonId})"]`); if (!el) return;
   el.className = `dex-item ${reg?'registered':'missing-dex'}`;
-  const check = el.querySelector('.dex-check'); if (check) check.style.display = reg?'flex':'none';
   const sprite = el.querySelector('.dex-sprite');
   if (sprite) sprite.style.filter = reg ? 'drop-shadow(0 2px 8px rgba(46,204,113,0.35))' : 'grayscale(1) brightness(0.4)';
   // update gen header progress
