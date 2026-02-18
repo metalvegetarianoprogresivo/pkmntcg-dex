@@ -437,7 +437,12 @@
     .modal-btns button { flex: 1; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 700; font-family: 'Rajdhani', sans-serif; cursor: pointer; border: none; }
     .btn-have { background: var(--have); color: #000; }
     .btn-missing { background: var(--surface2); color: var(--text); border: 1px solid var(--border) !important; }
-    .btn-close { margin-top: 10px; width: 100%; padding: 8px; background: none; color: var(--text-dim); font-size: 13px; font-family: 'Rajdhani', sans-serif; cursor: pointer; border: none; }
+    .btn-wish { margin-top: 10px; width: 100%; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 700; font-family: 'Rajdhani', sans-serif; cursor: pointer; background: var(--surface2); border: 1px solid var(--accent); color: var(--accent); transition: all 0.2s; }
+    .btn-wish.active { background: var(--accent); color: #000; }
+    .btn-close { margin-top: 8px; width: 100%; padding: 8px; background: none; color: var(--text-dim); font-size: 13px; font-family: 'Rajdhani', sans-serif; cursor: pointer; border: none; }
+    .card-item.wished { border-color: var(--accent); box-shadow: 0 0 10px rgba(232,184,0,0.15); }
+    .card-item.wished .card-status-badge.missing { background: var(--accent); opacity: 0; }
+    .card-item.wished:hover .card-status-badge.missing { opacity: 0.6; }
 
     /* ─── TOAST ────────────────────────────── */
     #toast {
@@ -478,6 +483,7 @@
 <div class="nav-tabs">
   <button class="nav-tab active" data-view="tcg">🃏 Colección TCG</button>
   <button class="nav-tab" data-view="dex">🔴 Living Dex</button>
+  <button class="nav-tab" data-view="wishlist">⭐ Wishlist</button>
 </div>
 
 <!-- ═══ VIEW: TCG COLLECTION ════════════════════ -->
@@ -545,6 +551,18 @@
   </div>
 </div>
 
+<!-- ═══ VIEW: WISHLIST ════════════════════════════ -->
+<div id="view-wishlist" style="display:none">
+  <div class="stats-bar">
+    <div class="stats-inner">
+      <div class="stat"><div class="stat-dot" style="background:var(--accent)"></div><strong id="wish-stat-count">0</strong><span>en wishlist</span></div>
+      <div class="stat"><div class="stat-dot total"></div><strong id="wish-stat-sets">0</strong><span>sets</span></div>
+    </div>
+  </div>
+  <div id="wish-sets-container"></div>
+  <div id="wish-empty" class="empty-state" style="display:none">⭐ Tu wishlist está vacía.<br>Añade cartas desde el modal de cada carta.</div>
+</div>
+
 <!-- TCG Card Modal -->
 <div id="modal-overlay">
   <div class="modal">
@@ -555,6 +573,7 @@
       <button class="btn-have" id="modal-btn-have">✓ La tengo</button>
       <button class="btn-missing" id="modal-btn-missing">✕ Me falta</button>
     </div>
+    <button class="btn-wish" id="modal-btn-wish">☆ Añadir a wishlist</button>
     <button class="btn-close" id="modal-close">Cerrar</button>
   </div>
 </div>
@@ -594,6 +613,7 @@
 // ════════════════════════════════════════════════
 const TCG_KEY        = 'pokédex-tcg-collection-v1';
 const DEX_KEY        = 'pokédex-living-dex-v1';
+const WISH_KEY       = 'pokédex-tcg-wishlist-v1';
 const POKEMON_CACHE  = 'pokédex-pokemon-list-v1';
 const CACHE_TTL      = 30 * 24 * 60 * 60 * 1000; // 30 days
 
@@ -602,6 +622,7 @@ const CACHE_TTL      = 30 * 24 * 60 * 60 * 1000; // 30 days
 // ════════════════════════════════════════════════
 let DB         = null;  // cards.json
 let collection = {};    // TCG collection { cardId: true }
+let wishlist   = {};    // TCG wishlist   { cardId: true }
 let dexStatus  = {};    // Living Dex { pokemonId: true }
 let pokemonList = [];   // [{ id, name, sprite, types, gen }]
 let currentView = 'tcg';
@@ -624,11 +645,14 @@ let currentDexPokemonId = null;
 // ════════════════════════════════════════════════
 function loadStorage() {
   try { collection = JSON.parse(localStorage.getItem(TCG_KEY)) || {}; } catch { collection = {}; }
-  try { dexStatus = JSON.parse(localStorage.getItem(DEX_KEY)) || {}; } catch { dexStatus = {}; }
+  try { wishlist   = JSON.parse(localStorage.getItem(WISH_KEY)) || {}; } catch { wishlist = {}; }
+  try { dexStatus  = JSON.parse(localStorage.getItem(DEX_KEY)) || {}; } catch { dexStatus = {}; }
 }
-function saveTCG()  { localStorage.setItem(TCG_KEY, JSON.stringify(collection)); }
-function saveDex()  { localStorage.setItem(DEX_KEY, JSON.stringify(dexStatus)); }
+function saveTCG()     { localStorage.setItem(TCG_KEY,  JSON.stringify(collection)); }
+function saveWish()    { localStorage.setItem(WISH_KEY, JSON.stringify(wishlist)); }
+function saveDex()     { localStorage.setItem(DEX_KEY,  JSON.stringify(dexStatus)); }
 function hasCard(id)   { return collection[id] === true; }
+function isWished(id)  { return wishlist[id] === true; }
 function isDexed(id)   { return dexStatus[id] === true; }
 
 // ════════════════════════════════════════════════
@@ -640,12 +664,16 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
     tab.classList.add('active');
     currentView = tab.dataset.view;
 
-    document.getElementById('view-tcg').style.display = currentView === 'tcg' ? 'block' : 'none';
-    document.getElementById('view-dex').style.display = currentView === 'dex'  ? 'block' : 'none';
+    document.getElementById('view-tcg').style.display      = currentView === 'tcg'      ? 'block' : 'none';
+    document.getElementById('view-dex').style.display      = currentView === 'dex'      ? 'block' : 'none';
+    document.getElementById('view-wishlist').style.display = currentView === 'wishlist' ? 'block' : 'none';
 
     const si = document.getElementById('search-input');
     if (currentView === 'tcg') {
       si.placeholder = 'Buscar carta o set...';
+    } else if (currentView === 'wishlist') {
+      si.placeholder = 'Buscar en wishlist...';
+      renderWishlist();
     } else {
       si.placeholder = 'Buscar Pokémon...';
       if (pokemonList.length > 0) renderDex();
@@ -658,13 +686,13 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
 //  TCG — EXPORT / IMPORT
 // ════════════════════════════════════════════════
 document.getElementById('btn-export').addEventListener('click', () => {
-  const data = { exportedAt: new Date().toISOString(), version: 1, collection, dexStatus };
+  const data = { exportedAt: new Date().toISOString(), version: 1, collection, wishlist, dexStatus };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `pokemon-tracker-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
-  toast('✅ Colección exportada (TCG + Living Dex)');
+  toast('✅ Colección exportada (TCG + Wishlist + Living Dex)');
 });
 document.getElementById('btn-import').addEventListener('click', () => document.getElementById('import-file').click());
 document.getElementById('import-file').addEventListener('change', (e) => {
@@ -674,8 +702,9 @@ document.getElementById('import-file').addEventListener('change', (e) => {
     try {
       const data = JSON.parse(ev.target.result);
       if (data.collection) collection = data.collection;
-      if (data.dexStatus) dexStatus = data.dexStatus;
-      saveTCG(); saveDex();
+      if (data.wishlist)   wishlist   = data.wishlist;
+      if (data.dexStatus)  dexStatus  = data.dexStatus;
+      saveTCG(); saveWish(); saveDex();
       render(); renderDex();
       toast('✅ Datos importados correctamente');
     } catch { toast('❌ Error al importar el archivo'); }
@@ -761,7 +790,8 @@ function render() {
 
 function renderCard(card) {
   const have = hasCard(card.id);
-  return `<div class="card-item ${have?'have':'missing'}" onclick="openTCGModal('${card.id}')" title="${card.name}">
+  const wished = isWished(card.id);
+  return `<div class="card-item ${have?'have':'missing'}${wished?' wished':''}" onclick="openTCGModal('${card.id}')" title="${card.name}">
     <div class="card-img-wrap">
       ${card.imageSmall ? `<img src="${card.imageSmall}" alt="${card.name}" loading="lazy">` : '<div class="card-img-placeholder">🃏</div>'}
       <div class="card-status-badge ${have?'have':'missing'}" onclick="quickAddCard(event,'${card.id}')">✓</div>
@@ -782,6 +812,51 @@ function updateTCGStats() {
   document.getElementById('stat-total').textContent = total.toLocaleString();
   document.getElementById('progress-fill').style.width = pct+'%';
   document.getElementById('stat-pct').textContent = pct.toFixed(1)+'%';
+}
+
+function renderWishlist() {
+  if (!DB) return;
+  const search = currentSearch.toLowerCase().trim();
+  const setMap = {};
+  DB.cards.forEach(card => {
+    if (!isWished(card.id)) return;
+    if (search && !card.name.toLowerCase().includes(search) && !(DB.sets[card.setId]?.name||'').toLowerCase().includes(search)) return;
+    const set = DB.sets[card.setId]; if (!set) return;
+    if (!setMap[card.setId]) setMap[card.setId] = { set, cards: [] };
+    setMap[card.setId].cards.push(card);
+  });
+  const container = document.getElementById('wish-sets-container');
+  const emptyEl   = document.getElementById('wish-empty');
+  const sortedSets = Object.values(setMap).sort((a,b) => (b.set.releaseDate||'').localeCompare(a.set.releaseDate||''));
+  const totalWished = Object.values(wishlist).filter(Boolean).length;
+  document.getElementById('wish-stat-count').textContent = totalWished.toLocaleString();
+  document.getElementById('wish-stat-sets').textContent  = sortedSets.length.toLocaleString();
+  if (!sortedSets.length) {
+    container.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  container.innerHTML = sortedSets.map(({ set, cards }) => {
+    const haveCount = cards.filter(c => hasCard(c.id)).length;
+    const pct = cards.length ? Math.round(haveCount/cards.length*100) : 0;
+    const isOpen = openSets.has(set.id);
+    return `<div class="set-group${isOpen?' open':''}" data-set-id="${set.id}">
+      <div class="set-header" onclick="toggleSet('${set.id}')">
+        ${set.symbolUrl ? `<img class="set-logo" src="${set.symbolUrl}" alt="" loading="lazy">` : '<div class="set-logo" style="font-size:20px;display:flex;align-items:center;justify-content:center">🃏</div>'}
+        <div class="set-info">
+          <div class="set-name">${set.name}</div>
+          <div class="set-meta">${set.series||''} · ${set.releaseDate||''} · ${cards.length} carta${cards.length!==1?'s':''}</div>
+        </div>
+        <div class="set-progress">
+          <div class="set-pct">${haveCount}/${cards.length}</div>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="set-chevron">▼</div>
+      </div>
+      <div class="set-cards"><div class="cards-grid">${cards.map(renderCard).join('')}</div></div>
+    </div>`;
+  }).join('');
 }
 
 function toggleSet(setId) {
@@ -814,12 +889,14 @@ document.getElementById('search-input').addEventListener('input', e => {
   document.getElementById('search-clear').style.display = val ? 'block' : 'none';
   clearTimeout(searchTimeout);
   if (currentView === 'tcg') { currentSearch = val; searchTimeout = setTimeout(render, 200); }
+  else if (currentView === 'wishlist') { currentSearch = val; searchTimeout = setTimeout(renderWishlist, 200); }
   else { dexSearch = val.toLowerCase().trim(); searchTimeout = setTimeout(renderDex, 150); }
 });
 document.getElementById('search-clear').addEventListener('click', () => {
   document.getElementById('search-input').value = '';
   document.getElementById('search-clear').style.display = 'none';
   if (currentView === 'tcg') { currentSearch = ''; render(); }
+  else if (currentView === 'wishlist') { currentSearch = ''; renderWishlist(); }
   else { dexSearch = ''; renderDex(); }
 });
 
@@ -831,6 +908,7 @@ function openTCGModal(cardId) {
   document.getElementById('modal-name').textContent = card.name;
   document.getElementById('modal-meta').textContent = `${set?.name||''} · #${card.localId||card.number||''}${card.rarity?' · '+card.rarity:''}`;
   updateTCGModalBtns();
+  updateWishModalBtn();
   document.getElementById('modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -858,7 +936,8 @@ function quickAddCard(event, cardId) {
 function patchCardDOM(cardId) {
   const el = document.querySelector(`.card-item[onclick="openTCGModal('${cardId}')"]`); if (!el) return;
   const have = hasCard(cardId);
-  el.className = `card-item ${have?'have':'missing'}`;
+  const wished = isWished(cardId);
+  el.className = `card-item ${have?'have':'missing'}${wished?' wished':''}`;
   const badge = el.querySelector('.card-status-badge');
   badge.className = `card-status-badge ${have?'have':'missing'}`;
   const sg = el.closest('.set-group'); if (!sg) return;
@@ -869,6 +948,33 @@ function patchCardDOM(cardId) {
   sg.querySelector('.set-pct').textContent = `${hc}/${sc.length}`;
   sg.querySelector('.mini-bar-fill').style.width = pct+'%';
 }
+
+function patchCardDOMWish(cardId) {
+  const el = document.querySelector(`.card-item[onclick="openTCGModal('${cardId}')"]`); if (!el) return;
+  const have = hasCard(cardId);
+  const wished = isWished(cardId);
+  el.className = `card-item ${have?'have':'missing'}${wished?' wished':''}`;
+}
+
+function updateWishModalBtn() {
+  const wished = isWished(modalCardId);
+  const btn = document.getElementById('modal-btn-wish');
+  btn.classList.toggle('active', wished);
+  btn.textContent = wished ? '⭐ En wishlist' : '☆ Añadir a wishlist';
+}
+document.getElementById('modal-btn-wish').addEventListener('click', () => {
+  if (isWished(modalCardId)) {
+    delete wishlist[modalCardId];
+    toast('☆ Eliminado de la wishlist');
+  } else {
+    wishlist[modalCardId] = true;
+    toast('⭐ Añadido a la wishlist');
+  }
+  saveWish();
+  updateWishModalBtn();
+  patchCardDOMWish(modalCardId);
+  if (currentView === 'wishlist') renderWishlist();
+});
 function closeTCGModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow = ''; modalCardId = null; }
 document.getElementById('modal-close').addEventListener('click', closeTCGModal);
 document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target.id==='modal-overlay') closeTCGModal(); });
