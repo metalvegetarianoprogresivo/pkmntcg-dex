@@ -11,25 +11,23 @@ git clone https://github.com/TU_USUARIO/pokemon-tcg-tracker
 cd pokemon-tcg-tracker
 ```
 
-### 2. Obtener API Key (gratuita)
+### 2. Instalar dependencias del script
 
-1. Regístrate en [pokemontcg.io](https://pokemontcg.io)
-2. Copia tu API Key
-3. En tu repositorio GitHub → **Settings → Secrets and variables → Actions**
-4. Crea un secreto llamado `POKEMONTCG_API_KEY` con tu clave
+```bash
+cd scripts && npm install && cd ..
+```
 
-> Sin API Key funciona pero con límite de 1000 peticiones/día (puede no ser suficiente para la descarga inicial de ~18k cartas). Con API Key: sin límites prácticos.
+> **No necesitas API Key.** El proyecto usa [TCGdex](https://tcgdex.dev), una API completamente gratuita y open source.
 
 ### 3. Generar la base de datos inicial
 
 ```bash
-cd scripts
-npm install
-cd ..
-POKEMONTCG_API_KEY=tu_clave_aqui node scripts/fetch-cards.js
+node scripts/fetch-cards.js
 ```
 
-Esto genera `cards.json` (~15-20 MB) en la raíz del proyecto. La primera vez tarda ~3-5 minutos.
+Esto genera `cards.json` (~20-30 MB) en la raíz del proyecto. La primera vez tarda ~5-10 minutos (descarga cartas set por set con delays corteses).
+
+> 💡 **Idioma:** Por defecto usa inglés. Para cambiar a español, edita `const LANG = 'en'` → `'es'` en `scripts/fetch-cards.js`.
 
 ### 4. Publicar en GitHub Pages
 
@@ -45,7 +43,7 @@ Tu app estará en: `https://TU_USUARIO.github.io/pokemon-tcg-tracker`
 
 ### 5. Actualización automática mensual
 
-El archivo `.github/workflows/update-cards.yml` ya está configurado para ejecutarse el **1 de cada mes a las 00:00 UTC**. También puedes lanzarlo manualmente desde la pestaña **Actions** de GitHub.
+El archivo `.github/workflows/update-cards.yml` ya está configurado para ejecutarse el **1 de cada mes a las 00:00 UTC**. También puedes lanzarlo manualmente desde la pestaña **Actions** de GitHub. No necesita secrets ni configuración adicional.
 
 ---
 
@@ -69,26 +67,25 @@ El archivo `.github/workflows/update-cards.yml` ya está configurado para ejecut
 ```
 pokemon-tcg-tracker/
 ├── index.html                    # La app completa (PWA)
-├── cards.json                    # Base de datos (generado, ~20MB)
+├── cards.json                    # Base de datos (generado, ~25MB)
 ├── scripts/
-│   ├── fetch-cards.js            # Script de actualización
+│   ├── fetch-cards.js            # Script de actualización (usa TCGdex)
 │   └── package.json
 └── .github/
     └── workflows/
-        └── update-cards.yml      # GitHub Action mensual
+        └── update-cards.yml      # GitHub Action mensual (sin API Key)
 ```
 
 ---
 
-## 🔧 Ejecutar la base de datos manualmente
+## 🔧 API utilizada
 
-```bash
-# Actualizar cards.json en cualquier momento
-node scripts/fetch-cards.js
+**[TCGdex](https://tcgdex.dev)** — Completamente gratuita, open source, sin registro.
 
-# Con API key explícita
-POKEMONTCG_API_KEY=xxxx node scripts/fetch-cards.js
-```
+- Base URL: `https://api.tcgdex.net/v2/en`
+- Soporta 10+ idiomas (en, es, fr, de, it, pt-br, ja, zh-tw, id, th...)
+- Imágenes hosteadas en `assets.tcgdex.net`
+- Compatible con Pokémon TCG y TCG Pocket
 
 ---
 
@@ -96,11 +93,11 @@ POKEMONTCG_API_KEY=xxxx node scripts/fetch-cards.js
 
 | Campo | Descripción |
 |-------|-------------|
-| `id` | ID único (ej: `xy1-1`) |
-| `name` | Nombre del Pokémon |
-| `number` | Número en el set |
-| `rarity` | Rareza |
+| `id` | ID único global (ej: `swsh3-136`) |
+| `localId` | Número en el set |
+| `name` | Nombre de la carta |
 | `setId` | ID del set |
-| `imageSmall` | Imagen thumbnail |
-| `imageLarge` | Imagen HD |
-| `nationalPokedexNumbers` | Número en Pokédex nacional |
+| `rarity` | Rareza |
+| `category` | Pokémon / Trainer / Energy |
+| `imageSmall` | Imagen thumbnail (WebP) |
+| `imageLarge` | Imagen HD (WebP) |

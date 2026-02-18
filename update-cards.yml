@@ -25,9 +25,7 @@ jobs:
         run: npm install node-fetch@3
         working-directory: scripts
 
-      - name: Run card fetch script
-        env:
-          POKEMONTCG_API_KEY: ${{ secrets.POKEMONTCG_API_KEY }}
+      - name: Run card fetch script (TCGdex — no API key required)
         run: node scripts/fetch-cards.js
 
       - name: Commit and push if changed
@@ -38,7 +36,8 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
-            CARD_COUNT=$(node -e "const d=require('./cards.json'); console.log(d.cards.length)")
-            git commit -m "chore: update card database - ${CARD_COUNT} cards [$(date +'%Y-%m-%d')]"
+            CARD_COUNT=$(node -p "require('./cards.json').totalCards")
+            SET_COUNT=$(node -p "require('./cards.json').totalSets")
+            git commit -m "chore: update card database — ${CARD_COUNT} cards, ${SET_COUNT} sets [$(date +'%Y-%m-%d')]"
             git push
           fi

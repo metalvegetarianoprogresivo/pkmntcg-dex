@@ -1,97 +1,149 @@
 // scripts/fetch-cards.js
-// Fetches all Pokémon TCG cards and saves them to cards.json
+// Fetches all Pokémon TCG cards from TCGdex API and saves them to cards.json
+// API: https://tcgdex.dev — Free, no API key required, open source
+//
 // Run: node scripts/fetch-cards.js
-// Requires: POKEMONTCG_API_KEY env var (optional but increases rate limits)
+// Language: English (change LANG to 'es', 'fr', 'de', 'it', 'pt-br', 'ja', etc.)
 
-import fetch from 'node-fetch';
-import { writeFileSync } from 'fs';
+const { writeFileSync } = require('fs');
 
-const API_BASE = 'https://api.pokemontcg.io/v2';
-const API_KEY = process.env.POKEMONTCG_API_KEY || '';
-const PAGE_SIZE = 250;
+const LANG = 'en';
+const API_BASE = `https://api.tcgdex.net/v2/${LANG}`;
+const IMG_BASE = 'https://assets.tcgdex.net/en';
+const DELAY_MS = 80; // polite delay between requests
 
-const headers = {
-  'Content-Type': 'application/json',
-  ...(API_KEY && { 'X-Api-Key': API_KEY }),
-};
+const delay = ms => new Promise(r => setTimeout(r, ms));
 
-async function fetchPage(page) {
-  const url = `${API_BASE}/cards?page=${page}&pageSize=${PAGE_SIZE}&select=id,name,supertype,subtypes,set,number,rarity,images,nationalPokedexNumbers`;
-  const res = await fetch(url, { headers });
-  if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`);
+async function get(path) {
+  const url = `${API_BASE}${path}`;
+  const res = await fetch(url, {
+    headers: { 'Accept': 'application/json', 'User-Agent': 'pokemon-tcg-tracker/1.0' }
+  });
+  if (!res.ok) throw new Error(`TCGdex API error ${res.status} for ${url}`);
   return res.json();
 }
 
+async function fetchAllSeries() {
+  const series = await get('/series');
+  return series; // array of { id, name }
+}
+
 async function fetchAllSets() {
-  const res = await fetch(`${API_BASE}/sets?select=id,name,series,releaseDate,images,total`, { headers });
-  if (!res.ok) throw new Error(`Sets API error: ${res.status}`);
-  const data = await res.json();
-  // Index by set id for fast lookup
-  return Object.fromEntries(data.data.map(s => [s.id, s]));
+  console.log('🔍 Fetching all sets...');
+  const sets = await get('/sets');
+  // sets is an array of brief set objects { id, name, cardCount, releaseDate, ... }
+  const setsMap = {};
+
+  for (let i = 0; i < sets.length; i++) {
+    const brief = sets[i];
+    process.stdout.write(`\r  ⏳ Loading set ${i + 1}/${sets.length}: ${brief.name}          `);
+    try {
+      // Fetch full set detail to get logo, symbol, serie
+      const full = await get(`/sets/${brief.id}`);
+      setsMap[brief.id] = {
+        id: full.id,
+        name: full.name,
+        series: full.serie?.name || null,
+        releaseDate: full.releaseDate || null,
+        total: full.cardCount?.total || full.cardCount?.official || 0,
+        logoUrl: full.logo ? `${full.logo}.png` : null,
+        symbolUrl: full.symbol ? `${full.symbol}.png` : null,
+      };
+    } catch (err) {
+      console.warn(`\n  ⚠️  Could not load set ${brief.id}: ${err.message}`);
+      setsMap[brief.id] = {
+        id: brief.id,
+        name: brief.name,
+        series: null,
+        releaseDate: brief.releaseDate || null,
+        total: 0,
+        logoUrl: null,
+        symbolUrl: null,
+      };
+    }
+    await delay(DELAY_MS);
+  }
+  console.log(`\n✅ Loaded ${Object.keys(setsMap).length} sets`);
+  return setsMap;
+}
+
+async function fetchCardsForSet(setId) {
+  try {
+    const set = await get(`/sets/${setId}`);
+    if (!set.cards || set.cards.length === 0) return [];
+
+    // set.cards is an array of brief card objects { id, localId, name, image }
+    return set.cards.map(card => ({
+      id: card.id,
+      localId: card.localId,
+      name: card.name,
+      setId,
+      // TCGdex image URLs are the image field + quality suffix
+      imageSmall: card.image ? `${card.image}/low.webp` : null,
+      imageLarge: card.image ? `${card.image}/high.webp` : null,
+      rarity: card.rarity || null,
+      category: card.category || null,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 async function main() {
-  console.log('🔍 Fetching sets...');
+  console.log('🚀 Starting TCGdex card database fetch...');
+  console.log(`🌐 Language: ${LANG} | API: ${API_BASE}\n`);
+
+  // Step 1: Fetch all sets
   const sets = await fetchAllSets();
-  console.log(`✅ Found ${Object.keys(sets).length} sets`);
+  const setIds = Object.keys(sets);
 
-  console.log('🃏 Fetching cards (this may take a few minutes)...');
+  // Step 2: Fetch cards set by set (more reliable than global /cards endpoint)
+  console.log(`\n🃏 Fetching cards for ${setIds.length} sets...`);
+  let allCards = [];
 
-  // First call to get total count
-  const firstPage = await fetchPage(1);
-  const totalCards = firstPage.totalCount;
-  const totalPages = Math.ceil(totalCards / PAGE_SIZE);
-  console.log(`📦 Total cards: ${totalCards} across ${totalPages} pages`);
+  for (let i = 0; i < setIds.length; i++) {
+    const setId = setIds[i];
+    const setName = sets[setId].name;
+    process.stdout.write(`\r  ⏳ Set ${i + 1}/${setIds.length}: ${setName}                    `);
 
-  let allCards = [...firstPage.data];
-
-  // Fetch remaining pages with a small delay to be polite
-  for (let page = 2; page <= totalPages; page++) {
-    process.stdout.write(`\r⏳ Fetching page ${page}/${totalPages}...`);
-    await new Promise(r => setTimeout(r, 100)); // 100ms delay
-    const data = await fetchPage(page);
-    allCards = allCards.concat(data.data);
+    const cards = await fetchCardsForSet(setId);
+    allCards = allCards.concat(cards);
+    await delay(DELAY_MS);
   }
-  console.log('\n');
+  console.log(`\n✅ Total cards fetched: ${allCards.length}\n`);
 
-  // Normalize cards to only what we need
-  const normalizedCards = allCards.map(card => ({
-    id: card.id,
-    name: card.name,
-    number: card.number,
-    rarity: card.rarity || null,
-    supertype: card.supertype,
-    subtypes: card.subtypes || [],
-    nationalPokedexNumbers: card.nationalPokedexNumbers || [],
-    setId: card.set?.id,
-    imageSmall: card.images?.small,
-    imageLarge: card.images?.large,
-  }));
-
-  // Sort: by set release date desc, then by card number
-  normalizedCards.sort((a, b) => {
+  // Step 3: Sort — newest sets first, then by localId numerically
+  allCards.sort((a, b) => {
     const setA = sets[a.setId];
     const setB = sets[b.setId];
     const dateA = setA?.releaseDate || '0000-00-00';
     const dateB = setB?.releaseDate || '0000-00-00';
-    if (dateA !== dateB) return dateB.localeCompare(dateA); // newest first
-    return a.number?.localeCompare(b.number, undefined, { numeric: true }) || 0;
+    if (dateA !== dateB) return dateB.localeCompare(dateA);
+    // Numeric sort on localId (e.g. "1", "10", "2" → 1, 2, 10)
+    return String(a.localId).localeCompare(String(b.localId), undefined, { numeric: true });
   });
 
+  // Step 4: Write output
   const output = {
     updatedAt: new Date().toISOString(),
-    totalCards: normalizedCards.length,
-    totalSets: Object.keys(sets).length,
+    source: 'TCGdex (https://tcgdex.dev)',
+    language: LANG,
+    totalCards: allCards.length,
+    totalSets: setIds.length,
     sets,
-    cards: normalizedCards,
+    cards: allCards,
   };
 
   writeFileSync('cards.json', JSON.stringify(output, null, 2));
-  console.log(`✅ Saved ${normalizedCards.length} cards and ${Object.keys(sets).length} sets to cards.json`);
-  console.log(`📅 Updated at: ${output.updatedAt}`);
+
+  console.log(`✅ cards.json written successfully`);
+  console.log(`   📦 ${allCards.length} cards`);
+  console.log(`   🗂  ${setIds.length} sets`);
+  console.log(`   📅 Updated: ${output.updatedAt}`);
+  console.log(`\n💡 Tip: Change LANG at the top of the script to fetch in another language.`);
 }
 
 main().catch(err => {
-  console.error('❌ Error:', err.message);
+  console.error('\n❌ Fatal error:', err.message);
   process.exit(1);
 });
